@@ -12,7 +12,7 @@ from llama_index.core import VectorStoreIndex
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
 from src.domain.state import GraphState
-from src.infrastructure.vector_store.faiss_adapter import FaissDBAdapter
+from src.infrastructure.vector_store.chromadb_adapter import ChromaDBAdapter
 from src.application.agents.compliance_agents import ComplianceAgents
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ def retrieve_node(state: GraphState) -> dict:
     logger.info(f"LangGraph: Recuperando documentos para a pergunta: '{state['question']}'")
     
     embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    db_adapter = FaissDBAdapter()
+    db_adapter = ChromaDBAdapter()
     vector_store = db_adapter.get_vector_store()
     
     index = VectorStoreIndex.from_vector_store(vector_store=vector_store, embed_model=embed_model)

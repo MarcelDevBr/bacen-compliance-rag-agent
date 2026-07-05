@@ -17,7 +17,7 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
 # Nossos módulos da Arquitetura Hexagonal
 from src.domain.config_loader import load_config
-from src.infrastructure.vector_store.faiss_adapter import FaissDBAdapter
+from src.infrastructure.vector_store.chromadb_adapter import ChromaDBAdapter
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -58,9 +58,8 @@ def run_ingestion(data_dir: str) -> None:
     documents = SimpleDirectoryReader(data_dir).load_data()
     logger.info(f"{len(documents)} arquivos/páginas carregados com sucesso.")
 
-    # 4. Inicializa o banco de dados vetorial FAISS (Swapped from ChromaDB)
-    # Devido ao Python 3.14.6 não suportar o Pydantic V1 usado pelo ChromaDB.
-    db_adapter = FaissDBAdapter()
+    # 4. Inicializa o banco de dados vetorial ChromaDB
+    db_adapter = ChromaDBAdapter()
     vector_store = db_adapter.get_vector_store()
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
@@ -71,11 +70,7 @@ def run_ingestion(data_dir: str) -> None:
         storage_context=storage_context,
         show_progress=True
     )
-    
-    # 6. Força o FAISS a salvar no disco
-    index.storage_context.persist(persist_dir=db_adapter.persist_dir)
-    
-    logger.info("Ingestão concluída! Banco de dados vetorial (FAISS) populado e salvo.")
+    logger.info("Ingestão concluída! Banco de dados vetorial (ChromaDB) populado.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ingestor de Normativas do Bacen")

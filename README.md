@@ -1,6 +1,6 @@
 # 🏛️ BACEN Compliance RAG - Multi-Agent AI System
 
-![Python 3.14](https://img.shields.io/badge/Python-3.14.6-blue?logo=python)
+![Python 3.12](https://img.shields.io/badge/Python-3.12-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)
 ![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF9900)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
@@ -15,20 +15,11 @@ Um sistema avançado de Inteligência Artificial para atuar como **Auditor e Ana
 O projeto foi construído seguindo os princípios da **Arquitetura Hexagonal** (Ports & Adapters), garantindo que a regra de negócios fique totalmente isolada das tecnologias externas.
 
 * **Ingestão e Vetorização (ETL):** `LlamaIndex` + `HuggingFace (all-MiniLM-L6-v2)`. Embeddings gerados localmente, sem custos de API.
-* **Banco de Dados Vetorial:** `FAISS` (Facebook AI Similarity Search) - implementado via Hot-Swap arquitetural para resolver quebras de dependência.
-* **Orquestração e Memória:** `LangGraph`, atuando como o cérebro que roteia a query, busca no FAISS e chama o Squad de Agentes.
-* **Squad Multi-Agente Nativo:** Desenvolvido puramente em `LangChain` (Agente Analista + Agente Auditor de Compliance) para garantir respostas 100% ancoradas na lei (anti-alucinação).
+* **Banco de Dados Vetorial:** `ChromaDB` - Banco nativo otimizado para recuperação rápida.
+* **Orquestração e Memória:** `LangGraph`, atuando como o cérebro que roteia a query, busca no ChromaDB e chama o Squad de Agentes.
+* **Squad Multi-Agente (CrewAI):** Desenvolvido utilizando `CrewAI` (Agente Analista + Agente Auditor de Compliance) para garantir respostas 100% ancoradas na lei (anti-alucinação) e autonomia de delegação.
 * **Camada de Apresentação:** `FastAPI` (REST JSON) e uma elegante interface Web UI nativa com Glassmorphism.
 * **LLM Provider:** `Groq API` (Alta velocidade, custo zero) via modelo Llama-3.
-
-## ⚠️ A Decisão Arquitetural (O Caso CrewAI vs Python 3.14 Edge)
-
-Originalmente planejado para usar `CrewAI`, a equipe de engenharia identificou durante o *runtime* que a biblioteca `crewai` possuía uma dependência profunda com o `ChromaDB` (via `Pydantic V1`), que por sua vez tem a sintaxe depreciada e incompatível com a engine do **Python 3.14.6**.
-
-**Solução Sênior:** Em vez de fazer *downgrade* do ambiente ou aceitar o vendor lock-in, aplicamos o *Design Pattern* do projeto hexagonal:
-
-1. O *ChromaDB* foi extirpado e substituído de forma transparente pelo **FAISS**.
-2. O *CrewAI* foi removido, e a orquestração Multi-Agente (Analista e Revisor) foi reconstruída de forma 100% nativa em `LangChain`. Nenhuma regra de negócio precisou ser alterada.
 
 ---
 
