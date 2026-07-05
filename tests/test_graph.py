@@ -2,10 +2,8 @@
 Módulo de testes unitários da Orquestração do LangGraph.
 """
 
-import pytest
 from unittest.mock import patch, MagicMock
 from src.application.use_cases.rag_orchestrator import retrieve_node, generate_node, build_graph
-from src.domain.entities import ComplianceResponse
 
 @patch("src.application.use_cases.rag_orchestrator.VectorStorePort")
 def test_retrieve_node(mock_vector_port_class) -> None:
@@ -53,5 +51,5 @@ def test_build_graph(mock_stategraph) -> None:
     mock_vector = MagicMock()
     mock_llm = MagicMock()
     
-    app = build_graph(vector_store_port=mock_vector, llm_port=mock_llm)
+    build_graph(vector_store_port=mock_vector, llm_port=mock_llm)
     assert mock_builder.compile.called

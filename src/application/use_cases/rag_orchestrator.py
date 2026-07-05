@@ -13,7 +13,6 @@ from langgraph.graph.state import CompiledStateGraph
 
 from src.domain.entities import ComplianceResponse
 from src.domain.state import RAGState
-from src.infrastructure.config.config_loader import load_config
 from src.domain.ports.vector_store_port import VectorStorePort
 from src.domain.ports.llm_port import LLMPort
 from src.application.agents.compliance_agents import ComplianceSquad

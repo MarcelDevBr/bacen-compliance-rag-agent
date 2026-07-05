@@ -6,7 +6,6 @@ respostas de sondas de saúde (health checks), renderização de UI e comportame
 de endpoints sob condições normais e de exceção.
 """
 
-import pytest
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 from src.presentation.api.main import app

@@ -6,7 +6,6 @@ responsável pelo particionamento heurístico (chunking) de documentos regulató
 e persistência dos embeddings no banco vetorial.
 """
 
-import os
 import argparse
 import logging
 from pathlib import Path
@@ -65,7 +64,7 @@ def run_ingestion(data_dir: str) -> None:
 
     # 5. Executa o Chunking e Embedding e salva no FAISS
     logger.info("Criando os Chunks e gerando Embeddings (pode levar alguns segundos na primeira vez)...")
-    index = VectorStoreIndex.from_documents(
+    VectorStoreIndex.from_documents(
         documents, 
         storage_context=storage_context,
         show_progress=True

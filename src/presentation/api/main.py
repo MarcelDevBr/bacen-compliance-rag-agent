@@ -11,17 +11,14 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-
-# Processamento de variáveis de ambiente do sistema operacional (.env)
-load_dotenv()
-
-from pydantic import BaseModel, ValidationError
-import logging
 from src.infrastructure.config.config_loader import load_config
 from src.presentation.api.routes import router
 from src.domain.exceptions import BaseDomainException
 from src.domain.entities import APIResponse
 from src.domain.messages import Messages
+
+# Processamento de variáveis de ambiente do sistema operacional (.env)
+load_dotenv()
 
 # Inicialização de handlers de Logging estruturado
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

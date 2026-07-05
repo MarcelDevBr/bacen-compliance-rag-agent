@@ -6,10 +6,8 @@ as parametrizações estritas de prompts e delegação sejam configuradas
 corretamente antes da execução do kickoff.
 """
 
-import pytest
 from unittest.mock import patch, MagicMock
 from src.application.agents.compliance_agents import ComplianceSquad
-from src.domain.ports.llm_port import LLMPort
 
 @patch("src.application.agents.compliance_agents.Task")
 @patch("src.application.agents.compliance_agents.Agent")

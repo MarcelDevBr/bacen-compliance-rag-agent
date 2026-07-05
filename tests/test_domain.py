@@ -6,7 +6,6 @@ estruturas de dados e funções de inicialização da camada fundamental da Arqu
 """
 
 import pytest
-from pydantic import ValidationError
 from src.infrastructure.config.config_loader import load_config
 
 def test_config_loader_success(monkeypatch: pytest.MonkeyPatch) -> None:

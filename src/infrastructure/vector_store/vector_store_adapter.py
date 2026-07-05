@@ -12,7 +12,6 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 from typing import Any, List
 
 from src.domain.ports.vector_store_port import VectorStorePort
-from src.infrastructure.config.config_loader import load_config
 import logging
 
 logger = logging.getLogger(__name__)
