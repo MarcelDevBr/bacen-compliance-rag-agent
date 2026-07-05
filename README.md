@@ -14,6 +14,27 @@ Um sistema avançado de Inteligência Artificial para atuar como **Auditor e Ana
 
 O projeto foi construído seguindo os princípios da **Arquitetura Hexagonal** (Ports & Adapters), garantindo que a regra de negócios fique totalmente isolada das tecnologias externas.
 
+### Fluxo de Execução (RAG)
+
+```mermaid
+sequenceDiagram
+    participant User as Cliente (Web/API)
+    participant API as FastAPI
+    participant LangGraph as Orquestrador (Cérebro)
+    participant ChromaDB as Vector Store
+    participant CrewAI as Squad de Agentes (LLM)
+
+    User->>API: POST /ask (Dúvida Compliance)
+    API->>LangGraph: Roteia a Pergunta
+    LangGraph->>ChromaDB: Busca Semântica de Documentos (Top K)
+    ChromaDB-->>LangGraph: Retorna Citações (PDFs)
+    LangGraph->>CrewAI: Contexto + Pergunta Original
+    Note over CrewAI: Agente Analista rascunha.<br/>Agente Auditor valida (anti-alucinação).
+    CrewAI-->>LangGraph: Resposta Validada e Final
+    LangGraph-->>API: Resposta + Fontes + Latência
+    API-->>User: JSON Response
+```
+
 * **Ingestão e Vetorização (ETL):** `LlamaIndex` + `HuggingFace (all-MiniLM-L6-v2)`. Embeddings gerados localmente, sem custos de API.
 * **Banco de Dados Vetorial:** `ChromaDB` - Banco nativo otimizado para recuperação rápida.
 * **Orquestração e Memória:** `LangGraph`, atuando como o cérebro que roteia a query, busca no ChromaDB e chama o Squad de Agentes.
@@ -39,11 +60,11 @@ O projeto foi construído seguindo os princípios da **Arquitetura Hexagonal** (
    cp .env.example .env
    ```
 
-2. **Ingestão de Dados (Criação do Banco Vetorial FAISS)**
+2. **Ingestão de Dados (Criação do Banco Vetorial ChromaDB)**
    Popule o banco de dados lendo o Mock do BACEN (Pix):
 
    ```bash
-   make ingest
+   ./scripts/ingest.sh
    ```
 
    *(Ou: `uv run python -m src.infrastructure.parser.pdf_ingestor`)*
@@ -51,7 +72,7 @@ O projeto foi construído seguindo os princípios da **Arquitetura Hexagonal** (
 3. **Suba o Servidor FastAPI e a Interface Web**
 
    ```bash
-   make run
+   ./scripts/start.sh
    ```
 
    *(Ou: `uv run uvicorn src.presentation.api.main:app --reload`)*
@@ -59,6 +80,17 @@ O projeto foi construído seguindo os princípios da **Arquitetura Hexagonal** (
 4. **Teste a Interface**
    Abra seu navegador em **[http://localhost:8000/](http://localhost:8000/)** para acessar a elegante UI do Chat.
    Ou acesse **[http://localhost:8000/docs](http://localhost:8000/docs)** para o painel de desenvolvedor Swagger.
+   Para visualizar a documentação alternativa da API, acesse **[http://localhost:8000/redoc](http://localhost:8000/redoc)** (ReDoc).
+
+### Exemplo de Uso via API
+
+Caso queira testar a integração do RAG programaticamente, após ligar o servidor (`./scripts/start.sh`), basta executar:
+
+```bash
+curl -X POST http://localhost:8000/ask \
+     -H "Content-Type: application/json" \
+     -d '{"query": "Qual é o prazo máximo para a devolução do Pix via MED?"}'
+```
 
 ---
 
@@ -76,11 +108,11 @@ make docker-up
 
 ## ✅ Qualidade e Testes (100% de Cobertura)
 
-O projeto contém uma suíte de testes unitários super robusta (`pytest`), validando as regras de negócio, a infraestrutura (Mocks do FAISS e LLM Groq), orquestração (LangGraph) e endpoints (FastAPI). **A cobertura de código (Coverage) é de 100%**.
+O projeto contém uma suíte de testes unitários super robusta (`pytest`), validando as regras de negócio, a infraestrutura (Mocks do VectorStore e LLM), orquestração (LangGraph) e endpoints (FastAPI). **A cobertura de código (Coverage) é de 100%**.
 
 Para rodar os testes e gerar o relatório:
 
 ```bash
-make test
-# Ou: PYTHONPATH=. uv run pytest tests/ --cov=src --cov-report=term-missing
+./scripts/test.sh
+# Ou para relatório detalhado: ./scripts/coverage.sh
 ```

@@ -67,18 +67,18 @@ class AppConfig(BaseModel):
 # --- API Models ---
 class QueryRequest(BaseModel):
     """Esquema do payload de entrada da requisição de inferência (Endpoint POST)."""
-    query: str = Field(..., description="A pergunta do usuário final ou operador do CRM a ser respondida.")
-    thread_id: Optional[str] = Field(None, description="Identificador da sessão para preservação de memória contextual (ex: ID de Ticket).")
+    query: str = Field(..., description="A pergunta do usuário final ou operador do CRM a ser respondida.", examples=["Qual o SLA de devolução do MED do Pix?"])
+    thread_id: Optional[str] = Field(None, description="Identificador da sessão para preservação de memória contextual (ex: ID de Ticket).", examples=["ticket-99882"])
 
 class Citation(BaseModel):
     """Esquema representativo de uma fonte documental utilizada como evidência pela IA."""
-    source_file: str = Field(..., description="Nome do artefato (ex: PDF) de origem da extração.")
-    page_number: int = Field(..., description="Número da página indexada do documento fonte.")
-    text_snippet: str = Field(..., description="Trecho literal extraído utilizado como base para a inferência.")
-    relevance_score: float = Field(..., description="Grau de similaridade cosseno (ou re-rank score) do trecho.")
+    source_file: str = Field(..., description="Nome do artefato (ex: PDF) de origem da extração.", examples=["manual-do-pix.pdf"])
+    page_number: int = Field(..., description="Número da página indexada do documento fonte.", examples=[14])
+    text_snippet: str = Field(..., description="Trecho literal extraído utilizado como base para a inferência.", examples=["O participante recebedor deverá devolver os recursos..."])
+    relevance_score: float = Field(..., description="Grau de similaridade cosseno (ou re-rank score) do trecho.", examples=[0.92])
 
 class RAGResponse(BaseModel):
     """Esquema do payload de saída da requisição de inferência (Endpoint POST)."""
-    answer: str = Field(..., description="Resposta em formato texto/markdown validada pelos agentes.")
+    answer: str = Field(..., description="Resposta em formato texto/markdown validada pelos agentes.", examples=["Conforme o normativo, o prazo de devolução é de até 72 horas."])
     citations: List[Citation] = Field(..., description="Vetor de citações extraídas garantindo XAI (Explainable AI).")
-    latency_ms: int = Field(..., description="Métrica de observabilidade denotando tempo de resposta interno (milissegundos).")
+    latency_ms: int = Field(..., description="Métrica de observabilidade denotando tempo de resposta interno (milissegundos).", examples=[4350])
