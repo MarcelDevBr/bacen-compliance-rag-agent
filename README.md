@@ -55,10 +55,10 @@ A pasta `data/` na raiz do projeto atua como o seu repositório de conhecimento 
 - **Regulamento do Pix:** [Portal do Pix no BCB](https://www.bcb.gov.br/estabilidadefinanceira/pix) (Manuais de SLA e MED).
 - **Open Finance:** [Governança Open Finance](https://www.bcb.gov.br/estabilidadefinanceira/openfinance).
 
-*Dica:* Para agilizar seus testes, você pode rodar o script `./scripts/fetch_bacen_pdfs.sh` para baixar automaticamente alguns manuais de demonstração.
+*Dica:* Para agilizar seus testes, você pode rodar o script `./scripts/scrape_bacen.py` para fazer scraping e baixar automaticamente 5 resoluções oficiais e atualizadas do BACEN.
 
 **O que fazer:**
-1. Rode o script de automação: `./scripts/fetch_bacen_pdfs.sh` (ou cole seus próprios PDFs baixados na pasta `data/`).
+1. Rode o script de automação: `uv run python scripts/scrape_bacen.py` (ou cole seus próprios PDFs baixados na pasta `data/`).
 2. Rode o pipeline de Ingestão de Dados (ETL) utilizando `./scripts/ingest.sh`.
 
 O sistema irá automaticamente extrair o texto dos PDFs, particioná-los (chunking), transformá-los em coordenadas matemáticas (embeddings) e persistir o conhecimento no banco **ChromaDB**. Quando o usuário fizer uma pergunta, o sistema buscará exatamente o parágrafo da lei que responde a dúvida e injetará no contexto da IA.
