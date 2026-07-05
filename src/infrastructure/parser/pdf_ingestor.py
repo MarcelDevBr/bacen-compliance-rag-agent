@@ -1,3 +1,11 @@
+"""
+Módulo de ingestão e indexação vetorial.
+
+Este script atua como o pipeline ETL (Extract, Transform, Load) do RAG,
+responsável pelo particionamento heurístico (chunking) de documentos regulatórios (PDFs)
+e persistência dos embeddings no banco vetorial.
+"""
+
 import os
 import argparse
 import logging
@@ -14,10 +22,15 @@ from src.infrastructure.vector_store.faiss_adapter import FaissDBAdapter
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def run_ingestion(data_dir: str):
+def run_ingestion(data_dir: str) -> None:
     """
-    Lê PDFs/Textos da pasta data_dir, faz o chunking configurado
-    e salva os Embeddings no FAISS local usando modelo gratuito.
+    Executa o pipeline de ingestão de documentos.
+
+    Este método orquestra a leitura do diretório, parametrização do particionamento,
+    Geração dos embeddings e a indexação final (HNSW/Flat) via LlamaIndex.
+
+    Args:
+        data_dir (str): Caminho absoluto ou relativo contendo os artefatos base (PDFs, TXTs).
     """
     logger.info("Iniciando Ingestão de Dados (ETL)...")
     
