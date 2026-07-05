@@ -15,8 +15,10 @@ from dotenv import load_dotenv
 # Processamento de variáveis de ambiente do sistema operacional (.env)
 load_dotenv()
 
+from pydantic import BaseModel, ValidationError
+import logging
+from src.infrastructure.config.config_loader import load_config
 from src.presentation.api.routes import router
-from src.domain.config_loader import load_config
 
 # Inicialização de handlers de Logging estruturado
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

@@ -16,7 +16,7 @@ from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, StorageCon
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
 # Nossos módulos da Arquitetura Hexagonal
-from src.domain.config_loader import load_config
+from src.infrastructure.config.config_loader import load_config
 from src.infrastructure.vector_store.vector_store_adapter import VectorStoreAdapter
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

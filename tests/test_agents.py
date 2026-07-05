@@ -8,20 +8,18 @@ corretamente antes da execução do kickoff.
 
 import pytest
 from unittest.mock import patch, MagicMock
-from src.application.agents.compliance_agents import ComplianceAgents
+from src.application.agents.compliance_agents import ComplianceSquad
+from src.domain.ports.llm_port import LLMPort
 
 @patch("src.application.agents.compliance_agents.Task")
 @patch("src.application.agents.compliance_agents.Agent")
-@patch("src.application.agents.compliance_agents.LLMAdapter")
 @patch("src.application.agents.compliance_agents.Crew")
-def test_compliance_agents_run_squad(mock_crew_class, mock_llm_adapter, mock_agent, mock_task) -> None:
+def test_compliance_agents_run_squad(mock_crew_class, mock_agent, mock_task) -> None:
     """
     Testa a orquestração do Squad (Agentes Analista e Revisor) via CrewAI.
     A classe Crew é interceptada (mock), permitindo validar se a função `run_squad`
     retorna a saída estruturada simulada.
     """
-    mock_llm = MagicMock()
-    mock_llm_adapter.return_value.get_client.return_value = mock_llm
     
     # Mock do objeto da equipe
     mock_crew_instance = MagicMock()
@@ -33,7 +31,8 @@ def test_compliance_agents_run_squad(mock_crew_class, mock_llm_adapter, mock_age
     
     mock_crew_class.return_value = mock_crew_instance
     
-    squad = ComplianceAgents()
+    mock_llm_port = MagicMock()
+    squad = ComplianceSquad(llm_port=mock_llm_port)
     final_ans = squad.run_squad("Minha pergunta", "Contexto falso")
     
     assert final_ans == "Final audited review by CrewAI"

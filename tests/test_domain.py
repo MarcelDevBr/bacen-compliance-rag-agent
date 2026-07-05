@@ -6,10 +6,10 @@ estruturas de dados e funções de inicialização da camada fundamental da Arqu
 """
 
 import pytest
-from src.domain.config_loader import load_config
-import os
+from pydantic import ValidationError
+from src.infrastructure.config.config_loader import load_config
 
-def test_config_loader_not_found() -> None:
+def test_config_loader_success(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Testa a mecânica de restrição (Fail-Fast) do carregador de configuração.
     Espera-se o lançamento da exceção FileNotFoundError na ausência do arquivo base (config.yml).

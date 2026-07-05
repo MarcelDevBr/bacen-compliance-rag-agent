@@ -48,25 +48,33 @@ def test_ui_not_found(mock_join) -> None:
     assert response.status_code == 200
     assert "indisponível" in response.text
 
-@patch("src.presentation.api.routes.rag_graph.invoke")
-def test_ask_compliance_success(mock_invoke) -> None:
+@patch("src.presentation.api.routes.build_graph")
+def test_ask_compliance_success(mock_build_graph) -> None:
     """
     Testa a funcionalidade nominal (Happy Path) da requisição ao RAG.
     O grafo de execução é interceptado (mock) garantindo teste isolado sem acesso a redes.
     """
-    mock_invoke.return_value = {"final_answer": "Mock Answer"}
+    mock_graph = MagicMock()
+    mock_graph.invoke.return_value = {"final_answer": "Mock Answer"}
+    mock_build_graph.return_value = mock_graph
+    
     response = client.post("/api/v1/query", json={"query": "Test", "thread_id": "123"})
+    
     assert response.status_code == 200
     assert response.json()["answer"] == "Mock Answer"
 
-@patch("src.presentation.api.routes.rag_graph.invoke")
-def test_ask_compliance_error(mock_invoke) -> None:
+@patch("src.presentation.api.routes.build_graph")
+def test_ask_compliance_error(mock_build_graph) -> None:
     """
     Avalia a mitigação de erros internos durante o processamento de inferência.
     Força-se uma exceção no componente orquestrador, aferindo se a falha é convertida
     adequadamente em um código HTTP 500 (Internal Server Error).
     """
-    mock_invoke.side_effect = Exception("Graph fail")
+    mock_graph = MagicMock()
+    mock_graph.invoke.side_effect = Exception("Graph fail")
+    mock_build_graph.return_value = mock_graph
+    
     response = client.post("/api/v1/query", json={"query": "Test", "thread_id": "123"})
+    
     assert response.status_code == 500
     assert "Falha sistêmica" in response.json()["detail"]

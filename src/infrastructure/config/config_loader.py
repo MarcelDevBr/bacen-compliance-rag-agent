@@ -7,8 +7,9 @@ garantindo validação de esquema no momento da inicialização (fail-fast).
 """
 
 import yaml
+from dotenv import load_dotenv
 from pathlib import Path
-from src.domain.models import AppConfig
+from src.domain.entities import AppConfig
 
 def load_config(config_path: str = "config.yml") -> AppConfig:
     """

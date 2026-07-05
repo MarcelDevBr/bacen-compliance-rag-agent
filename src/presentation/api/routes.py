@@ -8,19 +8,17 @@ HTTP externas para a invocação da cadeia lógica subjacente do LangGraph (RAG)
 import time
 import logging
 from fastapi import APIRouter, HTTPException
-from src.domain.models import QueryRequest, RAGResponse, Citation
-from src.application.graph import build_graph
+from src.domain.entities import QueryRequest, ComplianceResponse, Citation
+from src.infrastructure.vector_store.vector_store_adapter import VectorStoreAdapter
+from src.infrastructure.llm.llm_adapter import LLMAdapter
+from src.application.use_cases.rag_orchestrator import build_graph
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["Compliance"])
 
-# Instancia o grafo de orquestração na inicialização da rota
-# Em um ambiente de produção escalável, a gestão de dependências via injeção (IoC) seria recomendada.
-rag_graph = build_graph()
-
-@router.post("/query", response_model=RAGResponse, summary="Processa uma consulta de compliance regulatório.")
-async def ask_compliance_question(request: QueryRequest) -> RAGResponse:
+@router.post("/query", response_model=ComplianceResponse, summary="Processa uma consulta de compliance regulatório.")
+async def ask_compliance_question(request: QueryRequest) -> ComplianceResponse:
     """
     Endpoint principal para processamento de inferências em linguagem natural.
 
@@ -31,7 +29,7 @@ async def ask_compliance_question(request: QueryRequest) -> RAGResponse:
         request (QueryRequest): Payload validado contendo a string de busca e identificadores de sessão.
 
     Returns:
-        RAGResponse: Objeto validado contendo a resposta gerada, metadados de latência e citações de fontes.
+        ComplianceResponse: Objeto validado contendo a resposta gerada, metadados de latência e citações de fontes.
 
     Raises:
         HTTPException: Se ocorrer uma falha não mitigada no grafo de execução ou na camada de persistência.
@@ -41,6 +39,9 @@ async def ask_compliance_question(request: QueryRequest) -> RAGResponse:
     
     try:
         # Prepara o estado inicial para o LangGraph
+        vector_port = VectorStoreAdapter()
+        llm_port = LLMAdapter()
+        rag_graph = build_graph(vector_store_port=vector_port, llm_port=llm_port)
         initial_state = {
             "question": request.query,
             "thread_id": request.thread_id or "default",
@@ -66,7 +67,7 @@ async def ask_compliance_question(request: QueryRequest) -> RAGResponse:
         
         latency = int((time.time() - start_time) * 1000)
         
-        return RAGResponse(
+        return ComplianceResponse(
             answer=result["final_answer"],
             citations=citations,
             latency_ms=latency

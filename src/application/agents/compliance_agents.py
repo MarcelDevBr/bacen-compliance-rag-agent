@@ -8,26 +8,25 @@ e outro como validador de compliance regulatório.
 
 import logging
 from crewai import Agent, Task, Crew, Process
-from src.infrastructure.llm.llm_adapter import LLMAdapter
-from src.domain.config_loader import load_config
+from src.infrastructure.config.config_loader import load_config
+from src.domain.ports.llm_port import LLMPort
 
 logger = logging.getLogger(__name__)
 
-class ComplianceAgents:
+class ComplianceSquad:
     """
-    Classe orquestradora do squad de agentes de compliance utilizando CrewAI.
+    Orquestra o esquadrão Multi-Agente (Analista e Auditor) especializado em normativos.
     
     Attributes:
-        config (AppConfig): Instância contendo as configurações globais de domínio.
-        llm (BaseChatModel): Cliente do Large Language Model inicializado via adaptador infraestrutural.
+        llm_port (LLMPort): Adaptador LLM injetado que respeita a interface (Port) do domínio.
     """
     
-    def __init__(self) -> None:
+    def __init__(self, llm_port: LLMPort) -> None:
         """
         Inicializa o squad carregando as parametrizações e instanciando a conexão com a API do LLM.
         """
         self.config = load_config()
-        self.llm = LLMAdapter().get_client()
+        self.llm = llm_port.get_client()
 
     def run_squad(self, question: str, retrieved_context: str) -> str:
         """

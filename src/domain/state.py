@@ -7,9 +7,9 @@ durante a execução da cadeia de recuperação e geração (RAG).
 
 from typing import TypedDict, List, Annotated
 import operator
-from src.domain.models import Citation
+from src.domain.entities import Citation
 
-class GraphState(TypedDict):
+class RAGState(TypedDict):
     """
     Representação do estado global da execução no LangGraph.
     

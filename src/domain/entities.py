@@ -77,7 +77,7 @@ class Citation(BaseModel):
     text_snippet: str = Field(..., description="Trecho literal extraído utilizado como base para a inferência.", examples=["O participante recebedor deverá devolver os recursos..."])
     relevance_score: float = Field(..., description="Grau de similaridade cosseno (ou re-rank score) do trecho.", examples=[0.92])
 
-class RAGResponse(BaseModel):
+class ComplianceResponse(BaseModel):
     """Esquema do payload de saída da requisição de inferência (Endpoint POST)."""
     answer: str = Field(..., description="Resposta em formato texto/markdown validada pelos agentes.", examples=["Conforme o normativo, o prazo de devolução é de até 72 horas."])
     citations: List[Citation] = Field(..., description="Vetor de citações extraídas garantindo XAI (Explainable AI).")

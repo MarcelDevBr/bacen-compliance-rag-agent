@@ -8,9 +8,10 @@ da camada de orquestração do LangChain.
 
 import os
 from crewai import LLM
-from src.domain.config_loader import load_config
+from src.infrastructure.config.config_loader import load_config
+from src.domain.ports.llm_port import LLMPort
 
-class LLMAdapter:
+class LLMAdapter(LLMPort):
     """
     Classe adaptadora para o modelo de linguagem (LLM).
     
