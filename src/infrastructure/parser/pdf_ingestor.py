@@ -17,7 +17,7 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
 # Nossos módulos da Arquitetura Hexagonal
 from src.domain.config_loader import load_config
-from src.infrastructure.vector_store.chromadb_adapter import ChromaDBAdapter
+from src.infrastructure.vector_store.vector_store_adapter import VectorStoreAdapter
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ def run_ingestion(data_dir: str) -> None:
     logger.info(f"{len(documents)} arquivos/páginas carregados com sucesso.")
 
     # 4. Inicializa o banco de dados vetorial ChromaDB
-    db_adapter = ChromaDBAdapter()
+    db_adapter = VectorStoreAdapter()
     vector_store = db_adapter.get_vector_store()
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 

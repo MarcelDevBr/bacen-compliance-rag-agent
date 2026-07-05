@@ -11,8 +11,8 @@ from src.application.graph import retrieve_node, generate_node, build_graph
 
 @patch("src.application.graph.VectorStoreIndex")
 @patch("src.application.graph.HuggingFaceEmbedding")
-@patch("src.application.graph.ChromaDBAdapter")
-def test_retrieve_node(mock_chroma_db, mock_embed, mock_index) -> None:
+@patch("src.application.graph.VectorStoreAdapter")
+def test_retrieve_node(mock_vector_store_adapter, mock_embed, mock_index) -> None:
     """
     Valida a unidade funcional de recuperação vetorial (Retrieval Node).
     Módulos fundamentais (ChromaDB, Embeddings) são simulados (mocked), 

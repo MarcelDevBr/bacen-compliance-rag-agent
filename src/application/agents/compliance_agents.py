@@ -8,7 +8,7 @@ e outro como validador de compliance regulatório.
 
 import logging
 from crewai import Agent, Task, Crew, Process
-from src.infrastructure.llm.groq_adapter import GroqAdapter
+from src.infrastructure.llm.llm_adapter import LLMAdapter
 from src.domain.config_loader import load_config
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class ComplianceAgents:
         Inicializa o squad carregando as parametrizações e instanciando a conexão com a API do LLM.
         """
         self.config = load_config()
-        self.llm = GroqAdapter().get_client()
+        self.llm = LLMAdapter().get_client()
 
     def run_squad(self, question: str, retrieved_context: str) -> str:
         """

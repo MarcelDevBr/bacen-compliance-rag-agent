@@ -13,7 +13,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class ChromaDBAdapter:
+class VectorStoreAdapter:
     """
     Classe adaptadora para o sistema de busca vetorial (ChromaDB).
     

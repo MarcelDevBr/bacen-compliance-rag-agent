@@ -12,16 +12,16 @@ from src.application.agents.compliance_agents import ComplianceAgents
 
 @patch("src.application.agents.compliance_agents.Task")
 @patch("src.application.agents.compliance_agents.Agent")
-@patch("src.application.agents.compliance_agents.GroqAdapter")
+@patch("src.application.agents.compliance_agents.LLMAdapter")
 @patch("src.application.agents.compliance_agents.Crew")
-def test_compliance_agents_run_squad(mock_crew_class, mock_groq, mock_agent, mock_task) -> None:
+def test_compliance_agents_run_squad(mock_crew_class, mock_llm_adapter, mock_agent, mock_task) -> None:
     """
     Testa a orquestração do Squad (Agentes Analista e Revisor) via CrewAI.
     A classe Crew é interceptada (mock), permitindo validar se a função `run_squad`
     retorna a saída estruturada simulada.
     """
     mock_llm = MagicMock()
-    mock_groq.return_value.get_client.return_value = mock_llm
+    mock_llm_adapter.return_value.get_client.return_value = mock_llm
     
     # Mock do objeto da equipe
     mock_crew_instance = MagicMock()

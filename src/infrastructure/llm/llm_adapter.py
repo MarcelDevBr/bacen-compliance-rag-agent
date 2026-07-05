@@ -10,9 +10,9 @@ import os
 from langchain_groq import ChatGroq
 from src.domain.config_loader import load_config
 
-class GroqAdapter:
+class LLMAdapter:
     """
-    Adaptador de infraestrutura (Port & Adapter) gerindo o ciclo de vida do cliente LLM.
+    Classe adaptadora para o modelo de linguagem (LLM).
     
     Attributes:
         config (AppConfig): Modelos validados Pydantic contendo metadados do LLM.
