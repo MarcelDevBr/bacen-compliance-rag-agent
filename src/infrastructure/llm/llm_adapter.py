@@ -7,7 +7,7 @@ da camada de orquestração do LangChain.
 """
 
 import os
-from langchain_groq import ChatGroq
+from crewai import LLM
 from src.domain.config_loader import load_config
 
 class LLMAdapter:
@@ -30,15 +30,15 @@ class LLMAdapter:
         if not self.api_key or self.api_key == "gsk_suachaveaqui":
             raise ValueError("GROQ_API_KEY não configurada corretamente no sistema operacional ou .env!")
 
-    def get_client(self) -> ChatGroq:
+    def get_client(self) -> LLM:
         """
-        Provisiona e expõe o cliente LangChain preparado para inferência.
+        Provisiona e expõe o cliente LLM preparado para inferência pela CrewAI.
 
         Returns:
-            ChatGroq: Objeto cliente conectado à API externa com temperatura e modelo definidos via configuração.
+            LLM: Objeto cliente conectado à API externa com temperatura e modelo definidos via configuração.
         """
-        return ChatGroq(
+        return LLM(
+            model=f"{self.config.llm.provider}/{self.config.llm.model_name}",
             temperature=self.config.llm.temperature,
-            model_name=self.config.llm.model_name,
-            groq_api_key=self.api_key,
+            api_key=self.api_key
         )

@@ -24,7 +24,7 @@ sequenceDiagram
     participant ChromaDB as Vector Store
     participant CrewAI as Squad de Agentes (LLM)
 
-    User->>API: POST /ask (Dúvida Compliance)
+    User->>API: POST /api/v1/query (Dúvida Compliance)
     API->>LangGraph: Roteia a Pergunta
     LangGraph->>ChromaDB: Busca Semântica de Documentos (Top K)
     ChromaDB-->>LangGraph: Retorna Citações (PDFs)
@@ -87,7 +87,7 @@ sequenceDiagram
 Caso queira testar a integração do RAG programaticamente, após ligar o servidor (`./scripts/start.sh`), basta executar:
 
 ```bash
-curl -X POST http://localhost:8000/ask \
+curl -X POST http://localhost:8000/api/v1/query \
      -H "Content-Type: application/json" \
      -d '{"query": "Qual é o prazo máximo para a devolução do Pix via MED?"}'
 ```

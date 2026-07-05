@@ -17,10 +17,10 @@ A forma mais simples de utilizar o sistema é através da interface web que já 
 
 ## 2. API Programática (REST JSON)
 
-Você pode integrar o motor de Compliance em outros sistemas utilizando o endpoint `POST /ask`.
+Você pode integrar o motor de Compliance em outros sistemas utilizando o endpoint `POST /api/v1/query`.
 
 ### Endpoint
-- **URL:** `http://localhost:8000/ask`
+- **URL:** `http://localhost:8000/api/v1/query`
 - **Método:** `POST`
 - **Headers:** `Content-Type: application/json`
 
@@ -33,7 +33,7 @@ Você pode integrar o motor de Compliance em outros sistemas utilizando o endpoi
 
 ### Exemplo via cURL
 ```bash
-curl -X POST http://localhost:8000/ask \
+curl -X POST http://localhost:8000/api/v1/query \
      -H "Content-Type: application/json" \
      -d '{"question": "Qual é a penalidade para instituições que não cumprem o SLA do Pix?"}'
 ```

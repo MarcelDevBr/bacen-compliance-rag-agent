@@ -11,16 +11,15 @@ from src.infrastructure.vector_store.vector_store_adapter import VectorStoreAdap
 from src.infrastructure.llm.llm_adapter import LLMAdapter
 
 @patch("src.infrastructure.llm.llm_adapter.os.getenv")
-@patch("src.infrastructure.llm.llm_adapter.ChatGroq")
-def test_llm_adapter(mock_chat_groq, mock_getenv) -> None:
+@patch("src.infrastructure.llm.llm_adapter.LLM")
+def test_llm_adapter(mock_llm_class, mock_getenv) -> None:
     """
-    Testa a inicialização do adaptador Groq.
-    O método os.getenv é simulado (mock) para injetar uma chave de API fictícia, e a classe ChatGroq
-    é interceptada para evitar chamadas reais de rede. Este teste valida a correta instanciação 
-    do cliente LLM pelo adaptador.
+    Testa a inicialização do adaptador de LLM.
+    O método os.getenv é simulado (mock) para injetar uma chave de API fictícia, e a classe LLM
+    do CrewAI é interceptada para evitar instanciamento real de rede.
     """
     mock_getenv.return_value = "fake-key"
-    mock_chat_groq.return_value = MagicMock()
+    mock_llm_class.return_value = MagicMock()
     adapter = LLMAdapter()
     assert adapter.config is not None
     assert adapter.get_client() is not None
