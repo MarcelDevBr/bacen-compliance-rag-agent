@@ -81,3 +81,17 @@ def test_ask_compliance_error(mock_build_graph) -> None:
     assert response.json()["success"] is False
     assert Messages.RAG_EXECUTION_FAILED in response.json()["error_message"]
     assert response.json()["error_code"] == "ORCHESTRATION_ERROR"
+
+import pytest
+import json
+from fastapi import Request
+from src.presentation.api.main import global_exception_handler
+
+@pytest.mark.asyncio
+async def test_global_exception_handler_direct() -> None:
+    req = MagicMock(spec=Request)
+    req.url = "http://test"
+    response = await global_exception_handler(req, Exception("Test"))
+    assert response.status_code == 500
+    data = json.loads(response.body)
+    assert data["error_code"] == "INTERNAL_SERVER_ERROR"

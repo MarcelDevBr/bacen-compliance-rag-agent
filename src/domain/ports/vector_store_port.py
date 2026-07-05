@@ -19,11 +19,11 @@ class VectorStorePort(ABC):
         Returns:
             List[Any]: Lista contendo os fragmentos de texto retornados pelo banco vetorial.
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def as_retriever(self) -> Any:
         """
         Retorna o recuperador (retriever) nativo para integração com a engine subjacente.
         """
-        pass
+        pass  # pragma: no cover

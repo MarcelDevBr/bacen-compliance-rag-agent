@@ -15,3 +15,12 @@ def test_config_loader_success(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     with pytest.raises(FileNotFoundError):
         load_config(config_path="inexistente_123.yml")
+
+def test_exceptions() -> None:
+    """Valida instanciação e atributos das exceções de domínio."""
+    from src.domain.exceptions import ConfigurationError, RAGOrchestrationError, VectorStoreError, AgentInferenceError
+    
+    assert ConfigurationError("t").status_code == 500
+    assert RAGOrchestrationError("t").status_code == 500
+    assert VectorStoreError("t").status_code == 502
+    assert AgentInferenceError("t").status_code == 502

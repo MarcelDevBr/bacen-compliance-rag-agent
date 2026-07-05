@@ -15,4 +15,4 @@ class LLMPort(ABC):
         Returns:
             Any: Instância do LLM subjacente compatível com CrewAI/Langchain.
         """
-        pass
+        pass  # pragma: no cover

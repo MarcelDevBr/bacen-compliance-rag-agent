@@ -7,7 +7,7 @@ import os
 import time
 
 def scrape_bacen():
-    os.makedirs('data', exist_ok=True)
+    os.makedirs('data/normativas_bacen', exist_ok=True)
     print("[*] Iniciando web scraping dinâmico de normativos em bcb.gov.br (PDFs)...")
     
     # Utilizando DuckDuckGo HTML para encontrar PDFs indexados do domínio bcb.gov.br
@@ -55,7 +55,7 @@ def scrape_bacen():
             try:
                 pdf_res = requests.get(pdf_url, headers=headers, timeout=15)
                 if pdf_res.status_code == 200:
-                    filename = f"data/Bacen_Normativo_{i+1}.pdf"
+                    filename = f"data/normativas_bacen/Bacen_Normativo_{i+1}.pdf"
                     with open(filename, 'wb') as f:
                         f.write(pdf_res.content)
                     print(f"  [OK] Salvo como {filename}")
@@ -65,7 +65,7 @@ def scrape_bacen():
                 print(f"  [ERRO] {str(e)}")
             time.sleep(1) # Delay para evitar block (rate limiting)
             
-        print("\n[*] Raspagem concluída! Verifique os PDFs na pasta 'data/' e execute o ./scripts/ingest.sh")
+        print("\n[*] Raspagem concluída! Verifique os PDFs na pasta 'data/normativas_bacen/' e execute o ./scripts/ingest.sh")
             
     except Exception as e:
         print(f"[-] Falha catastrófica no scraping: {str(e)}")

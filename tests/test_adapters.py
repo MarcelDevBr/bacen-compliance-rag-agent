@@ -24,6 +24,28 @@ def test_llm_adapter(mock_llm_class, mock_getenv) -> None:
     assert adapter.config is not None
     assert adapter.get_client() is not None
 
+@patch("src.infrastructure.vector_store.vector_store_adapter.VectorStoreAdapter.get_vector_store")
+@patch("llama_index.core.VectorStoreIndex")
+@patch("llama_index.embeddings.huggingface.HuggingFaceEmbedding")
+def test_vector_store_adapter_search_and_retriever(mock_hf, mock_vsi, mock_get_store) -> None:
+    adapter = VectorStoreAdapter()
+    
+    mock_index = MagicMock()
+    mock_retriever = MagicMock()
+    mock_node = MagicMock()
+    mock_node.text = "mocked text"
+    
+    mock_retriever.retrieve.return_value = [mock_node]
+    mock_index.as_retriever.return_value = mock_retriever
+    mock_vsi.from_vector_store.return_value = mock_index
+    
+    results = adapter.search("teste", top_k=1)
+    
+    assert len(results) == 1
+    assert results[0] == "mocked text"
+    assert mock_retriever.retrieve.called
+    assert mock_vsi.from_vector_store.called
+
 @patch("src.infrastructure.llm.llm_adapter.os.getenv")
 def test_llm_adapter_missing_key(mock_getenv) -> None:
     """
