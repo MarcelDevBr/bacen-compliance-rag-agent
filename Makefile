@@ -18,3 +18,6 @@ docker-down:
 
 test-graph:
 	uv run python test_graph.py
+
+test:
+	PYTHONPATH=. uv run pytest tests/ -v
