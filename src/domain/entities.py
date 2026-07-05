@@ -7,7 +7,9 @@ incluindo configurações (YAML) e interfaces de entrada/saída de API.
 """
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Generic, TypeVar
+
+T = TypeVar("T")
 
 class LLMConfig(BaseModel):
     """Esquema de configuração para provedores de Large Language Models."""
@@ -82,3 +84,10 @@ class ComplianceResponse(BaseModel):
     answer: str = Field(..., description="Resposta em formato texto/markdown validada pelos agentes.", examples=["Conforme o normativo, o prazo de devolução é de até 72 horas."])
     citations: List[Citation] = Field(..., description="Vetor de citações extraídas garantindo XAI (Explainable AI).")
     latency_ms: int = Field(..., description="Métrica de observabilidade denotando tempo de resposta interno (milissegundos).", examples=[4350])
+
+class APIResponse(BaseModel, Generic[T]):
+    """Wrapper genérico para padronização de todas as saídas da API."""
+    success: bool = Field(..., description="Indica se a requisição foi processada com sucesso.")
+    data: Optional[T] = Field(None, description="Payload de dados da resposta.")
+    error_message: Optional[str] = Field(None, description="Mensagem legível do erro (em caso de falha).")
+    error_code: Optional[str] = Field(None, description="Código padronizado do erro para tratamento no client.")

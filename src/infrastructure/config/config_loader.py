@@ -10,6 +10,7 @@ import yaml
 from dotenv import load_dotenv
 from pathlib import Path
 from src.domain.entities import AppConfig
+from src.domain.messages import Messages
 
 def load_config(config_path: str = "config.yml") -> AppConfig:
     """
@@ -27,7 +28,7 @@ def load_config(config_path: str = "config.yml") -> AppConfig:
     """
     path = Path(config_path)
     if not path.exists():
-        raise FileNotFoundError(f"Arquivo de configuração não encontrado: {config_path}")
+        raise FileNotFoundError(f"{Messages.ERR_CONFIG_NOT_FOUND}: {config_path}")
         
     with open(path, "r", encoding="utf-8") as file:
         raw_config = yaml.safe_load(file)

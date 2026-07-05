@@ -7,8 +7,8 @@ middlewares (como CORS), e integrando o pipeline RAG à rede externa.
 
 import os
 import logging
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -19,6 +19,9 @@ from pydantic import BaseModel, ValidationError
 import logging
 from src.infrastructure.config.config_loader import load_config
 from src.presentation.api.routes import router
+from src.domain.exceptions import BaseDomainException
+from src.domain.entities import APIResponse
+from src.domain.messages import Messages
 
 # Inicialização de handlers de Logging estruturado
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -29,7 +32,7 @@ app_config = load_config()
 
 app = FastAPI(
     title=app_config.app.name,
-    description="Interface de Programação de Aplicações (API) robusta para Compliance Regulatório (RAG).",
+    description=Messages.API_DESCRIPTION,
     version="1.0.0"
 )
 
@@ -61,7 +64,7 @@ def serve_ui() -> str:
         with open(ui_path, "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        return "<h1>Interface UI indisponível. Artefato HTML não alocado no diretório.</h1>"
+        return Messages.UI_NOT_FOUND
 
 @app.get("/health", tags=["Health"])
 def health_check() -> dict:
@@ -77,5 +80,42 @@ def health_check() -> dict:
     return {
         "status": "online",
         "environment": app_config.app.environment,
-        "message": "Sistema operacional estabilizado. Acesso à especificação OpenAPI via /docs"
+        "message": Messages.SYSTEM_ONLINE
     }
+
+@app.exception_handler(BaseDomainException)
+async def domain_exception_handler(request: Request, exc: BaseDomainException):
+    """
+    Handler global para exceções de domínio controladas.
+    Retorna uma resposta HTTP estruturada em JSON, e loga o erro formalmente.
+    """
+    logger.warning(f"Domain Exception [{exc.error_code}]: {exc.message}")
+    
+    response = APIResponse(
+        success=False,
+        error_message=exc.message,
+        error_code=exc.error_code
+    )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=response.model_dump()
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Fallback global para falhas não tratadas.
+    Garante que erros inesperados também respeitem o contrato de APIResponse,
+    evitando vazamento de rastreios sensíveis em Produção.
+    """
+    logger.error(f"Unhandled Exception at {request.url}: {str(exc)}", exc_info=True)
+    
+    response = APIResponse(
+        success=False,
+        error_message=Messages.INTERNAL_SERVER_ERROR,
+        error_code="INTERNAL_SERVER_ERROR"
+    )
+    return JSONResponse(
+        status_code=500,
+        content=response.model_dump()
+    )

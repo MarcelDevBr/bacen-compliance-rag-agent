@@ -10,6 +10,7 @@ import logging
 from crewai import Agent, Task, Crew, Process
 from src.infrastructure.config.config_loader import load_config
 from src.domain.ports.llm_port import LLMPort
+from src.domain.messages import Messages
 
 logger = logging.getLogger(__name__)
 
@@ -42,18 +43,18 @@ class ComplianceSquad:
         logger.info("Iniciando Squad CrewAI (Analista -> Auditor)...")
 
         analyst_agent = Agent(
-            role="Especialista em Normativas do Banco Central",
+            role=Messages.ANALYST_ROLE,
             goal=self.config.prompts.analyst.system,
-            backstory="Você é um veterano em análises de normativos do Banco Central.",
+            backstory=Messages.ANALYST_BACKSTORY,
             verbose=False,
             allow_delegation=False,
             llm=self.llm
         )
 
         reviewer_agent = Agent(
-            role="Auditor-Chefe de Compliance",
+            role=Messages.REVIEWER_ROLE,
             goal=self.config.prompts.reviewer.system,
-            backstory="Você é um auditor rigoroso que pune alucinações matemáticas ou legais.",
+            backstory=Messages.REVIEWER_BACKSTORY,
             verbose=False,
             allow_delegation=False,
             llm=self.llm
@@ -61,13 +62,13 @@ class ComplianceSquad:
 
         draft_task = Task(
             description=self.config.prompts.analyst.user.format(question=question, context=retrieved_context),
-            expected_output="Rascunho detalhado e técnico da resposta.",
+            expected_output=Messages.ANALYST_EXPECTED_OUTPUT,
             agent=analyst_agent
         )
 
         audit_task = Task(
             description=self.config.prompts.reviewer.user.format(draft="{draft_output}", context=retrieved_context),
-            expected_output="Resposta final auditada e formatada em Markdown, sem alucinações.",
+            expected_output=Messages.REVIEWER_EXPECTED_OUTPUT,
             agent=reviewer_agent
         )
 

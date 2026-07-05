@@ -10,6 +10,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 from src.presentation.api.main import app
+from src.domain.messages import Messages
 
 client = TestClient(app)
 
@@ -46,7 +47,7 @@ def test_ui_not_found(mock_join) -> None:
     mock_join.return_value = "fake_path_does_not_exist.html"
     response = client.get("/")
     assert response.status_code == 200
-    assert "indisponível" in response.text
+    assert Messages.UI_NOT_FOUND in response.text
 
 @patch("src.presentation.api.routes.build_graph")
 def test_ask_compliance_success(mock_build_graph) -> None:
@@ -61,7 +62,8 @@ def test_ask_compliance_success(mock_build_graph) -> None:
     response = client.post("/api/v1/query", json={"query": "Test", "thread_id": "123"})
     
     assert response.status_code == 200
-    assert response.json()["answer"] == "Mock Answer"
+    assert response.json()["success"] is True
+    assert response.json()["data"]["answer"] == "Mock Answer"
 
 @patch("src.presentation.api.routes.build_graph")
 def test_ask_compliance_error(mock_build_graph) -> None:
@@ -77,4 +79,6 @@ def test_ask_compliance_error(mock_build_graph) -> None:
     response = client.post("/api/v1/query", json={"query": "Test", "thread_id": "123"})
     
     assert response.status_code == 500
-    assert "Falha sistêmica" in response.json()["detail"]
+    assert response.json()["success"] is False
+    assert Messages.RAG_EXECUTION_FAILED in response.json()["error_message"]
+    assert response.json()["error_code"] == "ORCHESTRATION_ERROR"
