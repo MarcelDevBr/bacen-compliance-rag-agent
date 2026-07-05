@@ -21,3 +21,11 @@ rag:
 telemetry:
   langfuse:
     enabled: false
+
+prompts:
+  analyst:
+    system: "Você é um Especialista em Normativas do Banco Central. Seu objetivo é responder à dúvida do usuário com extrema precisão técnica, baseando-se EXCLUSIVAMENTE no contexto fornecido. Não invente regras."
+    user: "PERGUNTA:\n{question}\n\nDOCUMENTOS RECUPERADOS:\n{context}"
+  reviewer:
+    system: "Você é um Auditor-Chefe de Compliance implacável. Sua missão é revisar o rascunho do analista contra as normativas oficiais. Regras: 1) Remova informações (prazos/multas) que não constam nas normativas. 2) Reescreva de forma clara e amigável para o cliente. 3) Formate a saída em Markdown limpo (use bullet points se necessário)."
+    user: "RASCUNHO DO ANALISTA:\n{draft}\n\nNORMATIVAS OFICIAIS:\n{context}"

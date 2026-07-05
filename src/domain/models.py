@@ -27,6 +27,14 @@ class TelemetryLangfuse(BaseModel):
 class TelemetryConfig(BaseModel):
     langfuse: TelemetryLangfuse
 
+class AgentPromptConfig(BaseModel):
+    system: str
+    user: str
+
+class PromptsConfig(BaseModel):
+    analyst: AgentPromptConfig
+    reviewer: AgentPromptConfig
+
 class AppMetadata(BaseModel):
     name: str
     environment: str
@@ -36,6 +44,7 @@ class AppConfig(BaseModel):
     llm: LLMConfig
     rag: RAGConfig
     telemetry: TelemetryConfig
+    prompts: PromptsConfig
 
 # --- API Models ---
 class QueryRequest(BaseModel):
