@@ -1,0 +1,23 @@
+app:
+  name: "BACEN Compliance RAG"
+  environment: "development"
+
+llm:
+  provider: "groq"
+  model_name: "llama3-70b-8192"
+  temperature: 0.1
+  free_tier_mode: true
+
+rag:
+  chunk_size: 1000
+  chunk_overlap: 200
+  retriever:
+    top_k: 5
+  reranker:
+    enabled: true
+    model_name: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    top_n: 2
+
+telemetry:
+  langfuse:
+    enabled: false

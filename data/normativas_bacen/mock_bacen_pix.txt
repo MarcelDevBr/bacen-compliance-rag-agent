@@ -1,0 +1,19 @@
+RESOLUÇÃO BCB Nº 1, DE 12 DE AGOSTO DE 2020
+
+Institui o arranjo de pagamentos Pix e aprova o seu Regulamento.
+
+CAPÍTULO I
+DISPOSIÇÕES PRELIMINARES
+
+Art. 1º Fica instituído o arranjo de pagamentos Pix.
+Parágrafo único. O Pix é um arranjo de pagamentos instituído pelo Banco Central do Brasil que disciplina a prestação de serviços de pagamento relacionados a transações de pagamentos instantâneos.
+
+Art. 2º Fica aprovado o Regulamento do arranjo de pagamentos Pix (Regulamento do Pix), anexo a esta Resolução.
+
+CAPÍTULO II
+DAS REGRAS DE DEVOLUÇÃO E FRAUDE (MOCK PARA TESTE)
+
+Art. 3º O Mecanismo Especial de Devolução (MED) entra em ação em casos de suspeita de fraude.
+§ 1º O prazo para a instituição financeira do recebedor bloquear cautelarmente os recursos é de até 72 horas após a notificação de infração.
+§ 2º O prazo total para analisar a contestação de fraude e, se confirmada, devolver o valor via Pix é de 7 dias corridos a partir do registro da contestação.
+§ 3º Contestações não aplicáveis por fraude comprovada ou falha sistêmica deverão ser rejeitadas sumariamente.
