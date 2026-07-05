@@ -44,6 +44,27 @@ sequenceDiagram
 
 ---
 
+## 📂 Repositório de Conhecimento (RAG Data)
+
+Para que a IA atue estritamente sob as normativas oficiais e evite alucinações (regra fundamental de Compliance), é obrigatório alimentar o "Cérebro" do sistema.
+
+A pasta `data/` na raiz do projeto atua como o seu repositório de conhecimento (*Knowledge Base*).
+
+**Onde encontrar os PDFs oficiais do BACEN?**
+- **Busca de Normas (Principal):** [Sistema de Busca de Normas](https://www.bcb.gov.br/estabilidadefinanceira/buscanormas) (Resoluções e Circulares).
+- **Regulamento do Pix:** [Portal do Pix no BCB](https://www.bcb.gov.br/estabilidadefinanceira/pix) (Manuais de SLA e MED).
+- **Open Finance:** [Governança Open Finance](https://www.bcb.gov.br/estabilidadefinanceira/openfinance).
+
+*Dica:* Para agilizar seus testes, você pode rodar o script `./scripts/fetch_bacen_pdfs.sh` para baixar automaticamente alguns manuais de demonstração.
+
+**O que fazer:**
+1. Rode o script de automação: `./scripts/fetch_bacen_pdfs.sh` (ou cole seus próprios PDFs baixados na pasta `data/`).
+2. Rode o pipeline de Ingestão de Dados (ETL) utilizando `./scripts/ingest.sh`.
+
+O sistema irá automaticamente extrair o texto dos PDFs, particioná-los (chunking), transformá-los em coordenadas matemáticas (embeddings) e persistir o conhecimento no banco **ChromaDB**. Quando o usuário fizer uma pergunta, o sistema buscará exatamente o parágrafo da lei que responde a dúvida e injetará no contexto da IA.
+
+---
+
 ## 🚀 Como Executar Localmente
 
 ### Pré-requisitos
