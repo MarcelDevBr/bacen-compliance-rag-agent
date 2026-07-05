@@ -1,3 +1,11 @@
+"""
+Módulo de orquestração do LangGraph para o pipeline RAG.
+
+Este módulo define os nós e as arestas do grafo acíclico direcionado (DAG) 
+que governa o fluxo de dados desde a recepção da pergunta do usuário até 
+a geração da resposta validada, integrando recuperação vetorial e avaliação multi-agente.
+"""
+
 import logging
 from langgraph.graph import StateGraph, START, END
 from llama_index.core import VectorStoreIndex
@@ -9,8 +17,20 @@ from src.application.agents.compliance_agents import ComplianceAgents
 
 logger = logging.getLogger(__name__)
 
-def retrieve_node(state: GraphState):
-    """Nó do LangGraph: Recupera documentos relevantes do FAISS via LlamaIndex."""
+def retrieve_node(state: GraphState) -> dict:
+    """
+    Nó de processamento: Recupera documentos relevantes do índice FAISS.
+
+    Este nó executa a busca de documentos (Dense Retrieval) convertendo a pergunta
+    do usuário em embeddings e consultando o banco vetorial.
+
+    Args:
+        state (GraphState): O estado atual da execução do grafo.
+
+    Returns:
+        dict: Um dicionário contendo a chave 'documents' com a lista de textos recuperados,
+              que será mesclada ao estado global.
+    """
     logger.info(f"LangGraph: Recuperando documentos para a pergunta: '{state['question']}'")
     
     embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -24,8 +44,20 @@ def retrieve_node(state: GraphState):
     documents = [n.text for n in nodes]
     return {"documents": documents}
 
-def generate_node(state: GraphState):
-    """Nó do LangGraph: Chama o Squad Nativo (Analista + Revisor) para gerar a resposta."""
+def generate_node(state: GraphState) -> dict:
+    """
+    Nó de processamento: Gera e revisa a resposta usando o squad multi-agente.
+
+    Este nó recebe os documentos recuperados no nó anterior e aciona a cadeia
+    LangChain nativa (Analista + Revisor) para sintetizar uma resposta fundamentada.
+
+    Args:
+        state (GraphState): O estado atual da execução do grafo.
+
+    Returns:
+        dict: Um dicionário contendo a chave 'final_answer' com a resposta aprovada,
+              que será mesclada ao estado global.
+    """
     logger.info("LangGraph: Iniciando geração de resposta com o Squad Multi-Agente...")
     
     context_str = "\n\n".join(state["documents"])
@@ -36,7 +68,12 @@ def generate_node(state: GraphState):
     return {"final_answer": final_answer}
 
 def build_graph():
-    """Constrói e compila o StateGraph (Pipeline RAG)."""
+    """
+    Constrói e compila a máquina de estado (StateGraph) do pipeline RAG.
+
+    Returns:
+        CompiledGraph: Uma instância compilada do grafo pronta para invocação (invoke).
+    """
     builder = StateGraph(GraphState)
     
     builder.add_node("retriever", retrieve_node)
