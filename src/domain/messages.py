@@ -5,7 +5,9 @@ Armazena as strings literais do sistema para facilitar manutenções
 e permitir futura internacionalização (i18n).
 """
 
-class Messages:
+from enum import StrEnum
+
+class Messages(StrEnum):
     # --- API Info ---
     API_DESCRIPTION = "Interface de Programação de Aplicações (API) robusta para Compliance Regulatório (RAG)."
     

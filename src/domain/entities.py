@@ -8,12 +8,23 @@ incluindo configurações (YAML) e interfaces de entrada/saída de API.
 
 from pydantic import BaseModel, Field
 from typing import List, Optional, Generic, TypeVar
+from enum import StrEnum
 
 T = TypeVar("T")
 
+class LLMProvider(StrEnum):
+    GROQ = "groq"
+    GOOGLE = "google"
+    OPENAI = "openai"
+
+class Environment(StrEnum):
+    DEVELOPMENT = "development"
+    STAGING = "staging"
+    PRODUCTION = "production"
+
 class LLMConfig(BaseModel):
     """Esquema de configuração para provedores de Large Language Models."""
-    provider: str = Field(default="groq", description="Nome do provedor LLM (ex: groq, google).")
+    provider: LLMProvider = Field(default=LLMProvider.GROQ, description="Nome do provedor LLM (ex: groq, google).")
     model_name: str = Field(default="llama3-70b-8192", description="Identificador do modelo a ser utilizado.")
     temperature: float = Field(default=0.1, description="Grau de aleatoriedade na geração de texto (0 a 1).")
     free_tier_mode: bool = Field(default=True, description="Sinaliza priorização de endpoints não tarifados.")
@@ -56,7 +67,7 @@ class PromptsConfig(BaseModel):
 class AppMetadata(BaseModel):
     """Esquema de metadados operacionais da aplicação."""
     name: str = Field(..., description="Nome de registro do aplicativo/serviço.")
-    environment: str = Field(..., description="Ambiente de implantação (ex: production, staging, development).")
+    environment: Environment = Field(..., description="Ambiente de implantação (ex: production, staging, development).")
 
 class AppConfig(BaseModel):
     """Raiz do esquema de configurações carregado a partir do YAML."""
