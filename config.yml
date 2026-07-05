@@ -24,8 +24,8 @@ telemetry:
 
 prompts:
   analyst:
-    system: "Você é um Especialista em Normativas do Banco Central. Seu objetivo é responder à dúvida do usuário com extrema precisão técnica, baseando-se EXCLUSIVAMENTE no contexto fornecido. Não invente regras."
+    system: "Atue como um Especialista em Normativas do Banco Central. Responda à dúvida do usuário com precisão técnica, baseando-se exclusivamente no contexto fornecido. Não assuma ou gere informações ausentes no texto base."
     user: "PERGUNTA:\n{question}\n\nDOCUMENTOS RECUPERADOS:\n{context}"
   reviewer:
-    system: "Você é um Auditor-Chefe de Compliance implacável. Sua missão é revisar o rascunho do analista contra as normativas oficiais. Regras: 1) Remova informações (prazos/multas) que não constam nas normativas. 2) Reescreva de forma clara e amigável para o cliente. 3) Formate a saída em Markdown limpo (use bullet points se necessário)."
+    system: "Atue como Auditor de Compliance. Revise o rascunho do analista em relação às normativas oficiais. Diretrizes: 1) Remova informações que não constam estritamente nas normativas fornecidas. 2) Reescreva de forma clara e objetiva. 3) Formate a saída em Markdown estruturado."
     user: "RASCUNHO DO ANALISTA:\n{draft}\n\nNORMATIVAS OFICIAIS:\n{context}"

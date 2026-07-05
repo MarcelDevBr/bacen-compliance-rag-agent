@@ -8,8 +8,9 @@ from src.infrastructure.llm.groq_adapter import GroqAdapter
 def test_groq_adapter(mock_chat_groq, mock_getenv):
     """
     Testa a inicialização do adaptador Groq.
-    Mockamos o os.getenv para injetar uma chave falsa e o ChatGroq para não realizar chamadas reais de rede.
-    Isso garante que o Adapter cria a instância do LLM corretamente.
+    O método os.getenv é simulado (mock) para injetar uma chave de API fictícia, e a classe ChatGroq
+    é interceptada para evitar chamadas reais de rede. Este teste valida a correta instanciação 
+    do cliente LLM pelo adaptador.
     """
     mock_getenv.return_value = "fake-key"
     mock_chat_groq.return_value = MagicMock()
@@ -27,8 +28,9 @@ def test_groq_adapter_missing_key(mock_getenv):
 @patch("src.infrastructure.vector_store.faiss_adapter.faiss")
 def test_faiss_adapter_create_new(mock_faiss, mock_exists):
     """
-    Testa a inicialização do banco FAISS quando nenhum banco existe no disco.
-    Mockamos o os.path.exists (retornando False) forçando o FAISS a criar um IndexFlatL2 novo em memória.
+    Testa a inicialização do banco FAISS na ausência de índice persistido no disco.
+    A função os.path.exists é simulada para retornar False, assegurando a criação de
+    um novo índice IndexFlatL2 em memória.
     """
     mock_exists.return_value = False
     mock_faiss.IndexFlatL2.return_value = MagicMock()

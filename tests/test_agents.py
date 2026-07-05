@@ -6,10 +6,11 @@ from src.application.agents.compliance_agents import ComplianceAgents
 @patch("src.application.agents.compliance_agents.GroqAdapter")
 def test_compliance_agents_run_squad(mock_groq):
     """
-    Testa a orquestração do Squad (Analista e Revisor).
-    Como a função `run_squad` invoca internamente `run_analyst` e `run_reviewer`, 
-    nós mockamos (patch.object) essas funções filhas no próprio objeto.
-    Isso isola o teste garantindo que o orquestrador passa o output do Analista para o Auditor corretamente.
+    Testa a orquestração do Squad (Agentes Analista e Revisor).
+    Como a função `run_squad` invoca internamente os métodos `run_analyst` e `run_reviewer`, 
+    estes métodos são interceptados (mocked via patch.object).
+    Este procedimento isola a validação do orquestrador, confirmando a correta passagem 
+    de fluxo de informações entre os agentes.
     """
     mock_llm = MagicMock()
     mock_groq.return_value.get_client.return_value = mock_llm
@@ -41,10 +42,10 @@ def test_compliance_agents_individual_runs(mock_parser, mock_groq):
 @patch("src.application.agents.compliance_agents.ChatPromptTemplate")
 def test_compliance_agents_chains(mock_prompt, mock_groq):
     """
-    Testa a execução individual das LangChain Expression Language (LCEL) Chains.
-    A cadeia original é: prompt | llm | StrOutputParser()
-    Para mockar o overload do operador Bitwise OR (__or__), interceptamos a criação da mensagem e retornamos 
-    um `mock_chain` no final, evitando erros do Pydantic (ValidationError) sobre 'Generation'.
+    Testa a execução individual das cadeias LCEL (LangChain Expression Language).
+    A cadeia configurada é: prompt | llm | StrOutputParser()
+    Para simular o overload do operador Bitwise OR (__or__), intercepta-se a criação da mensagem 
+    e retorna-se um objeto de simulação (`mock_chain`), contornando exceções de validação do Pydantic.
     """
     mock_llm = MagicMock()
     mock_groq.return_value.get_client.return_value = mock_llm

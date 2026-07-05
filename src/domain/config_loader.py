@@ -1,11 +1,28 @@
+"""
+Módulo de carregamento e validação de configurações.
+
+Este módulo é responsável por ler o arquivo de configuração YAML e
+converter seu conteúdo em estruturas fortemente tipadas utilizando Pydantic,
+garantindo validação de esquema no momento da inicialização (fail-fast).
+"""
+
 import yaml
 from pathlib import Path
 from src.domain.models import AppConfig
 
 def load_config(config_path: str = "config.yml") -> AppConfig:
     """
-    Carrega e valida o arquivo YAML de configuração usando Pydantic.
-    Garante falha rápida (fail-fast) se a configuração for inválida.
+    Carrega e valida o arquivo YAML de configuração.
+
+    Args:
+        config_path (str): Caminho para o arquivo de configuração YAML. Padrão é "config.yml".
+
+    Returns:
+        AppConfig: Instância contendo todas as configurações da aplicação validadas.
+
+    Raises:
+        FileNotFoundError: Se o arquivo especificado não for encontrado.
+        pydantic.ValidationError: Se o conteúdo do YAML violar os esquemas definidos.
     """
     path = Path(config_path)
     if not path.exists():
@@ -14,5 +31,4 @@ def load_config(config_path: str = "config.yml") -> AppConfig:
     with open(path, "r", encoding="utf-8") as file:
         raw_config = yaml.safe_load(file)
         
-    # O Pydantic fará o parse do dict e validará os tipos automaticamente (Zero verbosity)
     return AppConfig(**raw_config)
