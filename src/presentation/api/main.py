@@ -1,5 +1,7 @@
+import os
 import logging
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -35,13 +37,23 @@ app.add_middleware(
 # Registra os Endpoints (Roteador)
 app.include_router(router)
 
-@app.get("/", tags=["Health"])
+@app.get("/", tags=["UI"], response_class=HTMLResponse)
+def serve_ui():
+    """Serve a interface gráfica elegante do Chat."""
+    ui_path = os.path.join(os.path.dirname(__file__), "../ui/index.html")
+    try:
+        with open(ui_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return "<h1>Interface UI não encontrada. Verifique os arquivos.</h1>"
+
+@app.get("/health", tags=["Health"])
 def health_check():
     """Verifica se o servidor e as portas estão saudáveis."""
     return {
         "status": "online",
         "environment": app_config.app.environment,
-        "message": "Sistema de Compliance Operacional. Acesso via /docs"
+        "message": "Sistema de Compliance Operacional. Acesso da API via /docs"
     }
 
 # Instrução: Para rodar, use o comando:

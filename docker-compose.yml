@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: bacen_compliance_api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mapeia a pasta local para não precisar reconstruir o container a cada mudança de código
+      - .:/app
+    environment:
+      # Puxa as variáveis do seu arquivo .env local para dentro do container
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    command: >
+      uv run uvicorn src.presentation.api.main:app --host 0.0.0.0 --port 8000 --reload
