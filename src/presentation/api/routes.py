@@ -14,6 +14,7 @@ from src.domain.messages import Messages
 from src.infrastructure.vector_store.vector_store_adapter import VectorStoreAdapter
 from src.infrastructure.llm.llm_adapter import LLMAdapter
 from src.application.use_cases.rag_orchestrator import build_graph
+from src.domain.security import mask_pii
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,8 @@ async def ask_compliance_question(request: QueryRequest) -> APIResponse[Complian
     Returns:
         APIResponse[ComplianceResponse]: Objeto padronizado contendo a resposta e citações.
     """
-    logger.info(f"{Messages.LOG_NEW_REQUEST}: {request.query}")
+    sanitized_query = mask_pii(request.query)
+    logger.info(f"{Messages.LOG_NEW_REQUEST}: {sanitized_query}")
     start_time = time.time()
     
     # Prepara o estado inicial para o LangGraph
@@ -41,7 +43,7 @@ async def ask_compliance_question(request: QueryRequest) -> APIResponse[Complian
     llm_port = LLMAdapter()
     rag_graph = build_graph(vector_store_port=vector_port, llm_port=llm_port)
     initial_state = {
-        "question": request.query,
+        "question": sanitized_query,
         "thread_id": request.thread_id or "default",
         "documents": [],
         "citations": [],

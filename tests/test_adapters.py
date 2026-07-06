@@ -46,6 +46,9 @@ def test_vector_store_adapter_search_and_retriever(mock_hf, mock_vsi, mock_get_s
     assert mock_retriever.retrieve.called
     assert mock_vsi.from_vector_store.called
 
+    retriever = adapter.as_retriever()
+    assert retriever == mock_retriever
+
 @patch("src.infrastructure.llm.llm_adapter.os.getenv")
 def test_llm_adapter_missing_key(mock_getenv) -> None:
     """

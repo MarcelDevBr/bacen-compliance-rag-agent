@@ -7,6 +7,7 @@ desacoplando o domínio de negócios da infraestrutura de busca vetorial.
 """
 
 import os
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 import chromadb
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from typing import Any, List
