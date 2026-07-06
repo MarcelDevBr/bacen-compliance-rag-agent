@@ -3,19 +3,25 @@
 
 cd "$(dirname "$0")/.." || exit 1
 
-PID_API=$(pgrep -f "uvicorn src.presentation.api.main:app")
-PID_UI=$(pgrep -f "streamlit run frontend/app_streamlit.py")
+LOCK_API="logs/api.pid"
+LOCK_UI="logs/ui.pid"
 
-if [ -n "$PID_API" ]; then
+if [ -f "$LOCK_API" ] && kill -0 $(cat "$LOCK_API") 2>/dev/null; then
+    PID_API=$(cat "$LOCK_API")
     echo "[+] FastAPI está RODANDO (PID: $PID_API)."
 else
+    PID_API=""
     echo "[-] FastAPI NÃO está rodando."
+    rm -f "$LOCK_API" 2>/dev/null
 fi
 
-if [ -n "$PID_UI" ]; then
+if [ -f "$LOCK_UI" ] && kill -0 $(cat "$LOCK_UI") 2>/dev/null; then
+    PID_UI=$(cat "$LOCK_UI")
     echo "[+] Streamlit está RODANDO (PID: $PID_UI)."
 else
+    PID_UI=""
     echo "[-] Streamlit NÃO está rodando."
+    rm -f "$LOCK_UI" 2>/dev/null
 fi
 
 echo ""

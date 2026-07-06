@@ -35,8 +35,7 @@ st.markdown("""
 
 # ---- BARRA LATERAL ----
 with st.sidebar:
-    st.image("https://avatars.githubusercontent.com/u/1089914?s=200&v=4", width=150)
-    st.title("Sistema de Compliance")
+    st.title("🏦 Sistema de Compliance")
     st.markdown("Agente de Inteligência Artificial especializado na análise e auditoria de normativos oficiais do **Banco Central do Brasil**.")
     
     st.divider()
