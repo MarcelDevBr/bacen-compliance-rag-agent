@@ -4,7 +4,7 @@
 FROM python:3.14-rc-slim
 
 # Metadados
-LABEL maintainer="Seu Nome <seuemail@email.com>"
+LABEL maintainer="Marcel <marcel.sa.br@gmail.com>"
 LABEL description="API do BACEN Compliance RAG (FastAPI + LangGraph + FAISS)"
 
 # Define o diretório de trabalho dentro do container
