@@ -21,4 +21,4 @@ class RerankerPort(ABC):
         Returns:
             Tuple[List[str], List[Citation]]: Retorna apenas os documentos mais relevantes e suas respectivas Citações atualizadas com novo score.
         """
-        pass
+        pass  # pragma: no cover

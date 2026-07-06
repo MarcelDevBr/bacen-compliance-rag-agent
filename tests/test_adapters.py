@@ -9,7 +9,8 @@ import pytest
 from unittest.mock import patch, MagicMock
 from src.infrastructure.vector_store.vector_store_adapter import VectorStoreAdapter
 from src.infrastructure.llm.llm_adapter import LLMAdapter
-from src.domain.entities import AppConfig
+from src.infrastructure.reranker.reranker_adapter import CrossEncoderRerankerAdapter
+from src.domain.entities import AppConfig, Citation
 
 # Helper fixture-like to create a dummy config
 def get_mock_config() -> AppConfig:
@@ -44,8 +45,9 @@ def test_vector_store_adapter_search_and_retriever(mock_hf, mock_vsi, mock_get_s
     mock_retriever = MagicMock()
     mock_node = MagicMock()
     # Pydantic validates types, so we need real strings/numbers for mocked fields
-    mock_node.node.text = "mocked text"
-    mock_node.node.metadata = {"file_name": "test.pdf", "page_label": "2"}
+    mock_node.node.get_content.return_value = "mocked text"
+    # Provide an invalid page_label to trigger ValueError coverage
+    mock_node.node.metadata = {"file_name": "test.pdf", "page_label": "invalid_page"}
     mock_node.score = 0.95
     
     mock_retriever.retrieve.return_value = [mock_node]
@@ -60,7 +62,7 @@ def test_vector_store_adapter_search_and_retriever(mock_hf, mock_vsi, mock_get_s
     assert texts[0] == "mocked text"
     assert len(citations) == 1
     assert citations[0].source_file == "test.pdf"
-    assert citations[0].page_number == 2
+    assert citations[0].page_number == 1
     
     assert mock_retriever.retrieve.called
     assert mock_vsi.from_vector_store.called
@@ -78,6 +80,21 @@ def test_llm_adapter_missing_key(mock_getenv) -> None:
     with pytest.raises(ValueError):
         adapter.get_client("google")
 
+@patch("src.infrastructure.llm.llm_adapter.os.getenv")
+@patch("src.infrastructure.llm.llm_adapter.LLM")
+def test_llm_adapter_groq(mock_llm_class, mock_getenv) -> None:
+    mock_getenv.side_effect = lambda k: "fake-groq" if k == "GROQ_API_KEY" else "fake-gemini"
+    adapter = LLMAdapter(config=get_mock_config())
+    client = adapter.get_client(provider_override="groq")
+    assert client is not None
+
+@patch("src.infrastructure.llm.llm_adapter.os.getenv")
+def test_llm_adapter_groq_missing_key(mock_getenv) -> None:
+    mock_getenv.return_value = None
+    adapter = LLMAdapter(config=get_mock_config())
+    with pytest.raises(ValueError):
+        adapter.get_client("groq")
+
 @patch("src.infrastructure.vector_store.vector_store_adapter.VectorStoreIndex")
 @patch("src.infrastructure.vector_store.vector_store_adapter.HuggingFaceEmbedding")
 @patch("src.infrastructure.vector_store.vector_store_adapter.chromadb.PersistentClient")
@@ -93,5 +110,31 @@ def test_vector_store_adapter_init(mock_chroma_client, mock_hf, mock_vsi) -> Non
     vs = adapter.get_vector_store()
     
     assert vs is not None
-    # Verificamos que o adapter pega o config default, que é bacen_collection
+    assert adapter.as_retriever() is not None
     mock_db.get_or_create_collection.assert_called_once_with("bacen_collection")
+
+@patch("src.infrastructure.reranker.reranker_adapter.CrossEncoder")
+@patch("src.infrastructure.reranker.reranker_adapter.load_config")
+def test_reranker_adapter(mock_load_config, mock_cross_encoder):
+    mock_load_config.return_value = get_mock_config()
+    mock_model = MagicMock()
+    # Predict returns a list of scores
+    mock_model.predict.return_value = [0.9, 0.2]
+    mock_cross_encoder.return_value = mock_model
+
+    adapter = CrossEncoderRerankerAdapter()
+    
+    docs = ["Doc 1", "Doc 2"]
+    cits = [Citation(source_file="A", page_number=1, text_snippet="", relevance_score=0.0), 
+            Citation(source_file="B", page_number=2, text_snippet="", relevance_score=0.0)]
+            
+    # Test normal rerank
+    top_docs, top_cits = adapter.rerank("Query", docs, cits)
+    assert len(top_docs) == 2
+    assert top_docs[0] == "Doc 1"
+    assert top_cits[0].relevance_score == 0.9
+
+    # Test empty docs
+    empty_docs, empty_cits = adapter.rerank("Query", [], [])
+    assert empty_docs == []
+    assert empty_cits == []

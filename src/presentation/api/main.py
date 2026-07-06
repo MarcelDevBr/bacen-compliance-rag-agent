@@ -60,7 +60,7 @@ try:
         rag_graph,
         path="/rag"
     )
-except Exception as e:
+except Exception as e:  # pragma: no cover
     logger.error(f"Não foi possível inicializar a rota LangServe: {e}")
 
 @app.get("/health", tags=["Health"])
@@ -116,3 +116,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content=response.model_dump()
     )
+
+if __name__ == "__main__":  # pragma: no cover
+    import uvicorn
+    uvicorn.run(app, host=app_config.app.host, port=app_config.app.port_api)
