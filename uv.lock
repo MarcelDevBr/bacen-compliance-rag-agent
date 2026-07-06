@@ -252,6 +252,7 @@ dependencies = [
     { name = "ragas" },
     { name = "requests" },
     { name = "sentence-transformers" },
+    { name = "sse-starlette" },
     { name = "streamlit" },
     { name = "testcontainers" },
     { name = "uvicorn" },
@@ -291,6 +292,7 @@ requires-dist = [
     { name = "ragas", specifier = ">=0.4.3" },
     { name = "requests", specifier = ">=2.34.2" },
     { name = "sentence-transformers", specifier = ">=5.6.0" },
+    { name = "sse-starlette", specifier = ">=3.4.5" },
     { name = "streamlit", specifier = ">=1.58.0" },
     { name = "testcontainers", specifier = ">=4.14.2" },
     { name = "uvicorn", specifier = ">=0.50.0" },
@@ -5130,6 +5132,19 @@ wheels = [
 [package.optional-dependencies]
 asyncio = [
     { name = "greenlet" },
+]
+
+[[package]]
+name = "sse-starlette"
+version = "3.4.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "starlette" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d2/1b/bc9e3e7a72dcdad7dc7888758f5d00f56f8909ed5cfdff822bd72bb4c520/sse_starlette-3.4.5.tar.gz", hash = "sha256:83072538bc211a2f68b7b0422226c4af3e9b62e106e07034664b832ca019842a", size = 35249, upload-time = "2026-06-20T17:36:58.322Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/78/75/c88d3f5dafd59c791da1ce27650d30bf5b70cbf1cbf01cd00e5f9e360915/sse_starlette-3.4.5-py3-none-any.whl", hash = "sha256:e71bad53323f65573c3864a6c3bd0c1eb6e5f092b2e48082b0c35927d19ca296", size = 16518, upload-time = "2026-06-20T17:36:56.729Z" },
 ]
 
 [[package]]
