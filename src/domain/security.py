@@ -1,6 +1,6 @@
 import re
 
-def mask_pii(text: str) -> str:
+def mask_pii(text: str | None) -> str | None:
     """
     Ofusca dados sensíveis (PII) em textos.
     Mascaramentos implementados:
