@@ -20,8 +20,13 @@ fi
 
 echo ""
 if [ -f "logs/server.log" ] && [ -f "logs/ui.log" ]; then
-    echo "[*] Exibindo os logs mais recentes (pressione Ctrl+C para sair):"
-    tail -f logs/server.log logs/ui.log
+    if [ -n "$PID_API" ] || [ -n "$PID_UI" ]; then
+        echo "[*] Exibindo os logs em tempo real (pressione Ctrl+C para sair):"
+        tail -f logs/server.log logs/ui.log
+    else
+        echo "[*] Os serviços estão parados. Estes são os últimos logs registrados:"
+        tail -n 15 logs/server.log logs/ui.log
+    fi
 else
     echo "[-] Arquivos de log não encontrados. Inicie o servidor primeiro."
 fi
