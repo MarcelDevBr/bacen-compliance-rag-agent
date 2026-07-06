@@ -28,8 +28,6 @@ def test_llm_adapter(mock_llm_class, mock_getenv) -> None:
 @patch("llama_index.core.VectorStoreIndex")
 @patch("llama_index.embeddings.huggingface.HuggingFaceEmbedding")
 def test_vector_store_adapter_search_and_retriever(mock_hf, mock_vsi, mock_get_store) -> None:
-    adapter = VectorStoreAdapter()
-    
     mock_index = MagicMock()
     mock_retriever = MagicMock()
     mock_node = MagicMock()
@@ -38,6 +36,8 @@ def test_vector_store_adapter_search_and_retriever(mock_hf, mock_vsi, mock_get_s
     mock_retriever.retrieve.return_value = [mock_node]
     mock_index.as_retriever.return_value = mock_retriever
     mock_vsi.from_vector_store.return_value = mock_index
+
+    adapter = VectorStoreAdapter()
     
     results = adapter.search("teste", top_k=1)
     

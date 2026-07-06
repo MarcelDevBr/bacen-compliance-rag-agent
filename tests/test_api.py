@@ -8,7 +8,11 @@ de endpoints sob condições normais e de exceção.
 
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
-from src.presentation.api.main import app
+import pytest
+import json
+from fastapi import Request
+
+from src.presentation.api.main import app, global_exception_handler
 from src.domain.messages import Messages
 
 client = TestClient(app)
@@ -81,11 +85,6 @@ def test_ask_compliance_error(mock_build_graph) -> None:
     assert response.json()["success"] is False
     assert Messages.RAG_EXECUTION_FAILED in response.json()["error_message"]
     assert response.json()["error_code"] == "ORCHESTRATION_ERROR"
-
-import pytest
-import json
-from fastapi import Request
-from src.presentation.api.main import global_exception_handler
 
 @pytest.mark.asyncio
 async def test_global_exception_handler_direct() -> None:

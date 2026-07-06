@@ -32,10 +32,22 @@ class VectorStoreAdapter(VectorStorePort):
             persist_dir (str, optional): Caminho do diretório de armazenamento. Padrão é "vector_store".
             collection_name (str, optional): Nome da coleção. Padrão é "bacen_collection".
         """
+        from llama_index.core import VectorStoreIndex
+        from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+
         self.persist_dir = persist_dir
         self.collection_name = collection_name
         os.makedirs(persist_dir, exist_ok=True)
         self.db = chromadb.PersistentClient(path=persist_dir)
+        
+        logger.info(f"Conectando ao ChromaDB local: {self.persist_dir}")
+        chroma_collection = self.db.get_or_create_collection(self.collection_name)
+        self.vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+        
+        logger.info("Carregando modelo de embeddings...")
+        self.embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        self.index = VectorStoreIndex.from_vector_store(vector_store=self.vector_store, embed_model=self.embed_model)
+        self.retriever = self.index.as_retriever(similarity_top_k=5)
         
     def get_vector_store(self) -> ChromaVectorStore:
         """
@@ -44,21 +56,12 @@ class VectorStoreAdapter(VectorStorePort):
         Returns:
             ChromaVectorStore: Instância encapsulada pelo LlamaIndex pronta para Retrieval.
         """
-        logger.info(f"Conectando ao ChromaDB local: {self.persist_dir}")
-        chroma_collection = self.db.get_or_create_collection(self.collection_name)
-        return ChromaVectorStore(chroma_collection=chroma_collection)
+        return self.vector_store
 
     def search(self, query: str, top_k: int = 3) -> List[Any]:
-        # Em uma implementação real com LlamaIndex, faríamos o retriever via index
-        # Por simplificação para a abstração atual
-        retriever = self.as_retriever()
-        nodes = retriever.retrieve(query)
+        self.retriever.similarity_top_k = top_k
+        nodes = self.retriever.retrieve(query)
         return [n.text for n in nodes[:top_k]]
 
     def as_retriever(self) -> Any:
-        from llama_index.core import VectorStoreIndex
-        from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-        vector_store = self.get_vector_store()
-        embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        index = VectorStoreIndex.from_vector_store(vector_store=vector_store, embed_model=embed_model)
-        return index.as_retriever(similarity_top_k=5)
+        return self.retriever
