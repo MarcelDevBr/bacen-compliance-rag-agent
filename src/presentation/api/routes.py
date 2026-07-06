@@ -59,15 +59,8 @@ async def ask_compliance_question(request: QueryRequest) -> APIResponse[Complian
         # Se ocorrer uma falha durante o invoke, subimos a exceção de domínio
         raise RAGOrchestrationError(f"{Messages.RAG_EXECUTION_FAILED}: {str(e)}")
     
-    # Mapeamento heurístico temporário de citações (A ser substituído por métricas reais de relevância LlamaIndex)
-    citations = [
-        Citation(
-            source_file="mock_bacen_pix.txt (Banco Vetorial FAISS)",
-            page_number=1,
-            text_snippet="Documentos internos recuperados do normativo...",
-            relevance_score=0.99
-        )
-    ]
+    # Mapeamento real de citações retornadas pela etapa de Re-Ranking / Retrieval
+    citations = result.get("citations", [])
     
     latency = int((time.time() - start_time) * 1000)
     

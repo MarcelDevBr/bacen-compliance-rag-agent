@@ -25,8 +25,39 @@ def retrieve_node(state: RAGState, vector_store_port: VectorStorePort) -> dict:
     """
     question = state["question"]
     logger.info(f"LangGraph: Buscando contexto no Vector Store para a query: '{question}'")
-    results = vector_store_port.search(question, top_k=3)
-    return {"documents": results}
+    texts, citations = vector_store_port.search(question, top_k=5)
+    return {"documents": texts, "citations": citations}
+
+def rerank_node(state: RAGState) -> dict:
+    """
+    Nó de processamento: Aplica Re-Ranking nos documentos recuperados usando um CrossEncoder.
+    """
+    question = state["question"]
+    documents = state.get("documents", [])
+    citations = state.get("citations", [])
+    
+    if not documents:
+        return {}
+        
+    logger.info("LangGraph: Aplicando Re-Ranking nos documentos...")
+    from sentence_transformers import CrossEncoder
+    model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+    
+    pairs = [[question, doc] for doc in documents]
+    scores = model.predict(pairs)
+    
+    doc_score_pairs = list(zip(documents, citations, scores))
+    doc_score_pairs.sort(key=lambda x: x[2], reverse=True)
+    
+    # Keep Top 2
+    top_docs = [pair[0] for pair in doc_score_pairs[:2]]
+    top_citations = [pair[1] for pair in doc_score_pairs[:2]]
+    
+    # Atualiza o relevance_score das citações finais baseados no reranker
+    for i, citation in enumerate(top_citations):
+        citation.relevance_score = round(float(doc_score_pairs[i][2]), 4)
+        
+    return {"documents": top_docs, "citations": top_citations}
 
 def generate_node(state: RAGState, llm_port: LLMPort) -> dict:
     """
@@ -43,25 +74,19 @@ def generate_node(state: RAGState, llm_port: LLMPort) -> dict:
 def build_graph(vector_store_port: VectorStorePort, llm_port: LLMPort) -> CompiledStateGraph:
     """
     Constrói e compila a máquina de estado (StateGraph) do pipeline RAG utilizando Injeção de Dependência.
-
-    Args:
-        vector_store_port (VectorStorePort): A interface (Port) injetada do banco vetorial.
-        llm_port (LLMPort): A interface (Port) injetada de comunicação com o LLM.
-
-    Returns:
-        CompiledStateGraph: Uma instância compilada do grafo pronta para invocação.
     """
     builder = StateGraph(RAGState)
     
-    # Usa functools.partial para injetar as portas (ports) nos nós
     bound_retrieve = partial(retrieve_node, vector_store_port=vector_store_port)
     bound_generate = partial(generate_node, llm_port=llm_port)
     
     builder.add_node("retriever", bound_retrieve)
+    builder.add_node("reranker", rerank_node)
     builder.add_node("generator", bound_generate)
     
     builder.add_edge(START, "retriever")
-    builder.add_edge("retriever", "generator")
+    builder.add_edge("retriever", "reranker")
+    builder.add_edge("reranker", "generator")
     builder.add_edge("generator", END)
     
     return builder.compile()

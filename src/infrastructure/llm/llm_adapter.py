@@ -1,15 +1,16 @@
 """
-Módulo adaptador para a interface da API Groq.
+Módulo adaptador para a interface da API de LLM.
 
 Implementa a lógica de instanciamento e injeção de dependências para o 
-LLM fornecido pela Groq, isolando chaves de autenticação e detalhes de rede 
-da camada de orquestração do LangChain.
+LLM fornecido (Groq ou Google Gemini), isolando chaves de autenticação e detalhes de rede 
+da camada de orquestração do LangChain/CrewAI.
 """
 
 import os
 from crewai import LLM
 from src.infrastructure.config.config_loader import load_config
 from src.domain.ports.llm_port import LLMPort
+from src.domain.entities import LLMProvider
 
 class LLMAdapter(LLMPort):
     """
@@ -22,14 +23,17 @@ class LLMAdapter(LLMPort):
     def __init__(self) -> None:
         """
         Inicializa o adaptador processando as credenciais de segurança e parametrizações de modelo.
-
-        Raises:
-            ValueError: Se a variável de ambiente GROQ_API_KEY não estiver adequadamente provisionada.
         """
         self.config = load_config()
-        self.api_key = os.getenv("GROQ_API_KEY")
-        if not self.api_key or self.api_key == "gsk_suachaveaqui":
-            raise ValueError("GROQ_API_KEY não configurada corretamente no sistema operacional ou .env!")
+        
+        if self.config.llm.provider == LLMProvider.GOOGLE:
+            self.api_key = os.getenv("GEMINI_API_KEY")
+            if not self.api_key:
+                raise ValueError("GEMINI_API_KEY não configurada no ambiente!")
+        else:
+            self.api_key = os.getenv("GROQ_API_KEY")
+            if not self.api_key or self.api_key == "gsk_suachaveaqui":
+                raise ValueError("GROQ_API_KEY não configurada corretamente no sistema operacional ou .env!")
 
     def get_client(self) -> LLM:
         """
@@ -38,8 +42,11 @@ class LLMAdapter(LLMPort):
         Returns:
             LLM: Objeto cliente conectado à API externa com temperatura e modelo definidos via configuração.
         """
+        # LiteLLM prefix for Google Gemini is 'gemini/'
+        provider_prefix = "gemini" if self.config.llm.provider == LLMProvider.GOOGLE else self.config.llm.provider
+        
         return LLM(
-            model=f"{self.config.llm.provider}/{self.config.llm.model_name}",
+            model=f"{provider_prefix}/{self.config.llm.model_name}",
             temperature=self.config.llm.temperature,
             api_key=self.api_key
         )

@@ -31,7 +31,10 @@ def test_vector_store_adapter_search_and_retriever(mock_hf, mock_vsi, mock_get_s
     mock_index = MagicMock()
     mock_retriever = MagicMock()
     mock_node = MagicMock()
-    mock_node.text = "mocked text"
+    # Pydantic validates types, so we need real strings/numbers for mocked fields
+    mock_node.node.text = "mocked text"
+    mock_node.node.metadata = {"file_name": "test.pdf", "page_label": "2"}
+    mock_node.score = 0.95
     
     mock_retriever.retrieve.return_value = [mock_node]
     mock_index.as_retriever.return_value = mock_retriever
@@ -39,10 +42,14 @@ def test_vector_store_adapter_search_and_retriever(mock_hf, mock_vsi, mock_get_s
 
     adapter = VectorStoreAdapter()
     
-    results = adapter.search("teste", top_k=1)
+    texts, citations = adapter.search("teste", top_k=1)
     
-    assert len(results) == 1
-    assert results[0] == "mocked text"
+    assert len(texts) == 1
+    assert texts[0] == "mocked text"
+    assert len(citations) == 1
+    assert citations[0].source_file == "test.pdf"
+    assert citations[0].page_number == 2
+    
     assert mock_retriever.retrieve.called
     assert mock_vsi.from_vector_store.called
 

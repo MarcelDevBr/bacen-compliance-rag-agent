@@ -45,6 +45,24 @@ app.add_middleware(
 # Acoplamento do roteador de inferência principal
 app.include_router(router)
 
+# Integração com LangServe
+from langserve import add_routes
+from src.infrastructure.vector_store.vector_store_adapter import VectorStoreAdapter
+from src.infrastructure.llm.llm_adapter import LLMAdapter
+from src.application.use_cases.rag_orchestrator import build_graph
+
+try:
+    vector_port = VectorStoreAdapter()
+    llm_port = LLMAdapter()
+    rag_graph = build_graph(vector_store_port=vector_port, llm_port=llm_port)
+    add_routes(
+        app,
+        rag_graph,
+        path="/rag"
+    )
+except Exception as e:
+    logger.error(f"Não foi possível inicializar a rota LangServe: {e}")
+
 @app.get("/", tags=["UI"], response_class=HTMLResponse)
 def serve_ui() -> str:
     """

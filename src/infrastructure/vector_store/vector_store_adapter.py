@@ -59,10 +59,36 @@ class VectorStoreAdapter(VectorStorePort):
         """
         return self.vector_store
 
-    def search(self, query: str, top_k: int = 3) -> List[Any]:
+    def search(self, query: str, top_k: int = 3) -> tuple[List[str], List[Any]]:
+        from src.domain.entities import Citation
         retriever = self.index.as_retriever(similarity_top_k=top_k)
         nodes = retriever.retrieve(query)
-        return [n.text for n in nodes]
+        
+        citations = []
+        texts = []
+        for n in nodes:
+            texts.append(n.node.text)
+            metadata = n.node.metadata or {}
+            
+            # Extract LlamaIndex PDF metadata
+            file_name = metadata.get("file_name", "Desconhecido")
+            page_label = metadata.get("page_label", "1")
+            
+            try:
+                page_num = int(page_label)
+            except ValueError:
+                page_num = 1
+                
+            score = n.score if n.score is not None else 0.0
+            
+            citations.append(Citation(
+                source_file=file_name,
+                page_number=page_num,
+                text_snippet=n.node.text[:200] + "...",
+                relevance_score=round(float(score), 4)
+            ))
+            
+        return texts, citations
 
     def as_retriever(self) -> Any:
         return self.retriever

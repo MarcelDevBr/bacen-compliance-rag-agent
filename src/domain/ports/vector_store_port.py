@@ -8,7 +8,7 @@ class VectorStorePort(ABC):
     """
 
     @abstractmethod
-    def search(self, query: str, top_k: int = 3) -> List[Any]:
+    def search(self, query: str, top_k: int = 3) -> tuple[List[str], List[Any]]:
         """
         Busca os k documentos mais semanticamente próximos à query.
 

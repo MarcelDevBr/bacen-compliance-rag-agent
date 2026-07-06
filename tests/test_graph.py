@@ -12,13 +12,20 @@ def test_retrieve_node(mock_vector_port_class) -> None:
     Verifica se a chamada à busca vetorial ocorre corretamente com a abstração do VectorStorePort.
     """
     mock_vector_port = MagicMock()
-    mock_vector_port.search.return_value = ["Regulamento Pix: Art 1. ...", "Art 2. O MED..."]
+    
+    from src.domain.entities import Citation
+    fake_citations = [
+        Citation(source_file="doc1.pdf", page_number=1, text_snippet="...", relevance_score=0.9),
+        Citation(source_file="doc2.pdf", page_number=2, text_snippet="...", relevance_score=0.8)
+    ]
+    mock_vector_port.search.return_value = (["Regulamento Pix: Art 1. ...", "Art 2. O MED..."], fake_citations)
     
     state_input = {"question": "O que é MED?"}
     
     result = retrieve_node(state_input, vector_store_port=mock_vector_port)
     assert len(result["documents"]) == 2
-    mock_vector_port.search.assert_called_once_with("O que é MED?", top_k=3)
+    assert len(result["citations"]) == 2
+    mock_vector_port.search.assert_called_once_with("O que é MED?", top_k=5)
 
 @patch("src.application.use_cases.rag_orchestrator.ComplianceSquad")
 @patch("src.application.use_cases.rag_orchestrator.LLMPort")
