@@ -25,7 +25,7 @@ class Environment(StrEnum):
 class LLMConfig(BaseModel):
     """Esquema de configuração para provedores de Large Language Models."""
     provider: LLMProvider = Field(default=LLMProvider.GROQ, description="Nome do provedor LLM (ex: groq, google).")
-    model_name: str = Field(default="llama3-70b-8192", description="Identificador do modelo a ser utilizado.")
+    model_name: str = Field(default="llama-3.3-70b-versatile", description="Identificador do modelo a ser utilizado.")
     temperature: float = Field(default=0.1, description="Grau de aleatoriedade na geração de texto (0 a 1).")
     free_tier_mode: bool = Field(default=True, description="Sinaliza priorização de endpoints não tarifados.")
 

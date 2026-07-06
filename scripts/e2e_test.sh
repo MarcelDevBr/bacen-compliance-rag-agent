@@ -2,6 +2,7 @@
 # Script para Teste Funcional (End-to-End)
 
 echo "[*] Verificando a GROQ_API_KEY no .env..."
+cd "$(dirname "$0")/.." || exit 1
 if grep -q "gsk_suachave" .env; then
     echo "[-] AVISO: A chave GROQ_API_KEY no .env parece ser a chave de exemplo (gsk_suachave)."
     echo "[-] O teste funcional baterá na API real da Groq e vai falhar com erro de autenticação se a chave for inválida."

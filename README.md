@@ -98,6 +98,11 @@ O sistema irá automaticamente extrair o texto dos PDFs, particioná-los (chunki
 
    *(Ou: `uv run uvicorn src.presentation.api.main:app --reload`)*
 
+   Para parar o servidor (caso rodando em background), utilize:
+   ```bash
+   ./scripts/stop.sh
+   ```
+
 4. **Teste a Interface**
    Abra seu navegador em **[http://localhost:8000/](http://localhost:8000/)** para acessar a elegante UI do Chat.
    Ou acesse **[http://localhost:8000/docs](http://localhost:8000/docs)** para o painel de desenvolvedor Swagger.
@@ -135,5 +140,13 @@ Para rodar os testes e gerar o relatório:
 
 ```bash
 ./scripts/test.sh
-# Ou para relatório detalhado: ./scripts/coverage.sh
+# Ou para relatório detalhado de cobertura:
+./scripts/coverage.sh
+```
+
+**Testes Funcionais (End-to-End):**
+Para rodar um teste completo simulando o fluxo de ponta a ponta chamando a API real da Groq, utilize o script de E2E:
+
+```bash
+./scripts/e2e_test.sh
 ```
