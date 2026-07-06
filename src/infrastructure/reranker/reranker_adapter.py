@@ -31,7 +31,7 @@ class CrossEncoderRerankerAdapter(RerankerPort):
             
         logger.info(f"Aplicando CrossEncoder Re-Ranking em {len(documents)} documentos...")
         
-        pairs = [[query, doc] for doc in documents]
+        pairs = [(query, doc) for doc in documents]
         scores = self.model.predict(pairs)
         
         # Zip, sort by score descending, take top_n
