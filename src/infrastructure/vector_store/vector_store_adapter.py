@@ -60,9 +60,9 @@ class VectorStoreAdapter(VectorStorePort):
         return self.vector_store
 
     def search(self, query: str, top_k: int = 3) -> List[Any]:
-        self.retriever.similarity_top_k = top_k
-        nodes = self.retriever.retrieve(query)
-        return [n.text for n in nodes[:top_k]]
+        retriever = self.index.as_retriever(similarity_top_k=top_k)
+        nodes = retriever.retrieve(query)
+        return [n.text for n in nodes]
 
     def as_retriever(self) -> Any:
         return self.retriever
