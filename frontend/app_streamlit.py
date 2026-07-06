@@ -2,7 +2,11 @@ import streamlit as st
 import requests
 import json
 import os
+from dotenv import load_dotenv
 from src.infrastructure.config.config_loader import load_config
+
+# Processamento de variáveis de ambiente do sistema operacional (.env)
+load_dotenv()
 
 # Carrega configurações base (YAML + Env)
 app_config = load_config()

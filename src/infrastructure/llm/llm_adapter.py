@@ -53,7 +53,7 @@ class LLMAdapter(LLMPort):
             if not self.groq_key or self.groq_key == "gsk_suachaveaqui":
                 raise ValueError("GROQ_API_KEY inválida ou não configurada.")
             provider_prefix = "groq"
-            model_name = "llama3-70b-8192" if is_override else self.config.llm.model_name
+            model_name = "llama-3.3-70b-versatile" if is_override else self.config.llm.model_name
             api_key = self.groq_key
             
         return LLM(
