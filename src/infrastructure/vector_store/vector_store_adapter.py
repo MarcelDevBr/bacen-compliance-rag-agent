@@ -35,7 +35,9 @@ class VectorStoreAdapter(VectorStorePort):
         """
         from llama_index.core import VectorStoreIndex
         from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+        from src.infrastructure.config.config_loader import load_config
 
+        self.config = load_config()
         self.persist_dir = persist_dir
         self.collection_name = collection_name
         os.makedirs(persist_dir, exist_ok=True)
@@ -48,7 +50,7 @@ class VectorStoreAdapter(VectorStorePort):
         logger.info("Carregando modelo de embeddings...")
         self.embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
         self.index = VectorStoreIndex.from_vector_store(vector_store=self.vector_store, embed_model=self.embed_model)
-        self.retriever = self.index.as_retriever(similarity_top_k=5)
+        self.retriever = self.index.as_retriever(similarity_top_k=self.config.rag.retriever.top_k)
         
     def get_vector_store(self) -> ChromaVectorStore:
         """
@@ -59,9 +61,11 @@ class VectorStoreAdapter(VectorStorePort):
         """
         return self.vector_store
 
-    def search(self, query: str, top_k: int = 3) -> tuple[List[str], List[Any]]:
+    def search(self, query: str, top_k: int = None) -> tuple[List[str], List[Any]]:
         from src.domain.entities import Citation
-        retriever = self.index.as_retriever(similarity_top_k=top_k)
+        # Usa top_k passado via argumento, ou recorre ao top_k do config
+        k_val = top_k if top_k is not None else self.config.rag.retriever.top_k
+        retriever = self.index.as_retriever(similarity_top_k=k_val)
         nodes = retriever.retrieve(query)
         
         citations = []

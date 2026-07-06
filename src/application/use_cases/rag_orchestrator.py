@@ -19,18 +19,20 @@ from src.application.agents.compliance_agents import ComplianceSquad
 
 logger = logging.getLogger(__name__)
 
+from src.domain.ports.reranker_port import RerankerPort
+
 def retrieve_node(state: RAGState, vector_store_port: VectorStorePort) -> dict:
     """
     Nó de processamento: Recupera documentos relevantes do índice vetorial.
     """
     question = state["question"]
     logger.info(f"LangGraph: Buscando contexto no Vector Store para a query: '{question}'")
-    texts, citations = vector_store_port.search(question, top_k=5)
+    texts, citations = vector_store_port.search(question)
     return {"documents": texts, "citations": citations}
 
-def rerank_node(state: RAGState) -> dict:
+def rerank_node(state: RAGState, reranker_port: RerankerPort) -> dict:
     """
-    Nó de processamento: Aplica Re-Ranking nos documentos recuperados usando um CrossEncoder.
+    Nó de processamento: Aplica Re-Ranking nos documentos recuperados.
     """
     question = state["question"]
     documents = state.get("documents", [])
@@ -39,23 +41,8 @@ def rerank_node(state: RAGState) -> dict:
     if not documents:
         return {}
         
-    logger.info("LangGraph: Aplicando Re-Ranking nos documentos...")
-    from sentence_transformers import CrossEncoder
-    model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
-    
-    pairs = [[question, doc] for doc in documents]
-    scores = model.predict(pairs)
-    
-    doc_score_pairs = list(zip(documents, citations, scores))
-    doc_score_pairs.sort(key=lambda x: x[2], reverse=True)
-    
-    # Keep Top 2
-    top_docs = [pair[0] for pair in doc_score_pairs[:2]]
-    top_citations = [pair[1] for pair in doc_score_pairs[:2]]
-    
-    # Atualiza o relevance_score das citações finais baseados no reranker
-    for i, citation in enumerate(top_citations):
-        citation.relevance_score = round(float(doc_score_pairs[i][2]), 4)
+    logger.info("LangGraph: Aplicando Re-Ranking nos documentos via RerankerPort...")
+    top_docs, top_citations = reranker_port.rerank(question, documents, citations)
         
     return {"documents": top_docs, "citations": top_citations}
 
@@ -71,17 +58,18 @@ def generate_node(state: RAGState, llm_port: LLMPort) -> dict:
     
     return {"final_answer": final_answer}
 
-def build_graph(vector_store_port: VectorStorePort, llm_port: LLMPort) -> CompiledStateGraph:
+def build_graph(vector_store_port: VectorStorePort, llm_port: LLMPort, reranker_port: RerankerPort) -> CompiledStateGraph:
     """
     Constrói e compila a máquina de estado (StateGraph) do pipeline RAG utilizando Injeção de Dependência.
     """
     builder = StateGraph(RAGState)
     
     bound_retrieve = partial(retrieve_node, vector_store_port=vector_store_port)
+    bound_rerank = partial(rerank_node, reranker_port=reranker_port)
     bound_generate = partial(generate_node, llm_port=llm_port)
     
     builder.add_node("retriever", bound_retrieve)
-    builder.add_node("reranker", rerank_node)
+    builder.add_node("reranker", bound_rerank)
     builder.add_node("generator", bound_generate)
     
     builder.add_edge(START, "retriever")

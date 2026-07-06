@@ -8,7 +8,7 @@ middlewares (como CORS), e integrando o pipeline RAG à rede externa.
 import os
 import logging
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from src.infrastructure.config.config_loader import load_config
@@ -47,14 +47,14 @@ app.include_router(router)
 
 # Integração com LangServe
 from langserve import add_routes
-from src.infrastructure.vector_store.vector_store_adapter import VectorStoreAdapter
-from src.infrastructure.llm.llm_adapter import LLMAdapter
+from src.presentation.api.dependencies import get_vector_store, get_llm, get_reranker
 from src.application.use_cases.rag_orchestrator import build_graph
 
 try:
-    vector_port = VectorStoreAdapter()
-    llm_port = LLMAdapter()
-    rag_graph = build_graph(vector_store_port=vector_port, llm_port=llm_port)
+    vector_port = get_vector_store()
+    llm_port = get_llm()
+    reranker_port = get_reranker()
+    rag_graph = build_graph(vector_store_port=vector_port, llm_port=llm_port, reranker_port=reranker_port)
     add_routes(
         app,
         rag_graph,
@@ -62,24 +62,6 @@ try:
     )
 except Exception as e:
     logger.error(f"Não foi possível inicializar a rota LangServe: {e}")
-
-@app.get("/", tags=["UI"], response_class=HTMLResponse)
-def serve_ui() -> str:
-    """
-    Endpoint utilitário de provisionamento estático.
-
-    Realiza a leitura do buffer do arquivo HTML que suporta o frontend (Chat),
-    permitindo iteração rápida durante o ciclo de testes sem depender de CDNs.
-
-    Returns:
-        str: String literal formatada em HTML/CSS para renderização pelo navegador.
-    """
-    ui_path = os.path.join(os.path.dirname(__file__), "../ui/index.html")
-    try:
-        with open(ui_path, "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        return Messages.UI_NOT_FOUND
 
 @app.get("/health", tags=["Health"])
 def health_check() -> dict:
