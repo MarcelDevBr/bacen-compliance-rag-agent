@@ -59,7 +59,7 @@ class VectorStoreAdapter(VectorStorePort):
 
     def search(self, query: str, top_k: int | None = None) -> tuple[List[str], List[Any]]:
         # Usa top_k passado via argumento, ou recorre ao top_k do config
-        k_val = top_k if top_k is not None else self.config.rag.retriever.top_k
+        k_val = top_k or self.config.rag.retriever.top_k
         retriever = self.index.as_retriever(similarity_top_k=k_val)
         nodes = retriever.retrieve(query)
         
@@ -71,21 +71,16 @@ class VectorStoreAdapter(VectorStorePort):
             metadata = n.node.metadata or {}
             
             # Extract LlamaIndex PDF metadata
-            file_name = metadata.get("file_name", "Desconhecido")
-            page_label = metadata.get("page_label", "1")
-            
             try:
-                page_num = int(page_label)
+                page_num = int(metadata.get("page_label", "1"))
             except ValueError:
                 page_num = 1
-                
-            score = n.score if n.score is not None else 0.0
-            
+
             citations.append(Citation(
-                source_file=file_name,
+                source_file=metadata.get("file_name", "Desconhecido"),
                 page_number=page_num,
                 text_snippet=content[:200] + "...",
-                relevance_score=round(score, 4)
+                relevance_score=round(n.score or 0.0, 4)
             ))
             
         return texts, citations

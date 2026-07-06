@@ -40,19 +40,20 @@ class LLMAdapter(LLMPort):
             LLM: Objeto cliente conectado à API externa.
         """
         # Resolve o provedor: override tem preferência, depois config.yml
-        provider = provider_override if provider_override else self.config.llm.provider
-        
-        if provider == LLMProvider.GOOGLE or provider == "google":
+        provider = provider_override or self.config.llm.provider
+        is_override = provider != self.config.llm.provider
+
+        if provider in (LLMProvider.GOOGLE, "google"):
             if not self.gemini_key or self.gemini_key == "sua_chave":
                 raise ValueError("GEMINI_API_KEY inválida ou não configurada.")
             provider_prefix = "gemini"
-            model_name = "gemini-2.5-flash" if self.config.llm.provider != provider else self.config.llm.model_name
+            model_name = "gemini-2.5-flash" if is_override else self.config.llm.model_name
             api_key = self.gemini_key
         else:
             if not self.groq_key or self.groq_key == "gsk_suachaveaqui":
                 raise ValueError("GROQ_API_KEY inválida ou não configurada.")
             provider_prefix = "groq"
-            model_name = "llama3-70b-8192" if self.config.llm.provider != provider else self.config.llm.model_name
+            model_name = "llama3-70b-8192" if is_override else self.config.llm.model_name
             api_key = self.groq_key
             
         return LLM(

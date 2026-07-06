@@ -34,18 +34,15 @@ class CrossEncoderRerankerAdapter(RerankerPort):
         pairs = [[query, doc] for doc in documents]
         scores = self.model.predict(pairs)
         
-        doc_score_pairs = list(zip(documents, citations, scores))
-        # Ordena pela maior similaridade (score)
-        doc_score_pairs.sort(key=lambda x: x[2], reverse=True)
-        
-        # Filtra os Top N
-        top_pairs = doc_score_pairs[:self.top_n]
-        
-        top_docs = [pair[0] for pair in top_pairs]
-        top_citations = [pair[1] for pair in top_pairs]
-        
+        # Zip, sort by score descending, take top_n
+        top_pairs = sorted(zip(documents, citations, scores), key=lambda x: x[2], reverse=True)[:self.top_n]
+
+        top_docs = [doc for doc, _, _ in top_pairs]
+        top_citations = []
+
         # Atualiza os scores com o valor do reranker
-        for i, citation in enumerate(top_citations):
-            citation.relevance_score = round(float(top_pairs[i][2]), 4)
+        for _, cit, score in top_pairs:
+            cit.relevance_score = round(float(score), 4)
+            top_citations.append(cit)
             
         return top_docs, top_citations
