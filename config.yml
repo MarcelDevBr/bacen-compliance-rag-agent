@@ -1,16 +1,23 @@
 app:
   name: "BACEN Compliance RAG"
   environment: "development"
+  host: "0.0.0.0"
+  port_api: 8080
+  port_ui: 8000
 
 llm:
-  provider: "google"
-  model_name: "gemini-2.5-flash"
+  provider: "groq"
+  model_name: "llama3-70b-8192"
   temperature: 0.1
   free_tier_mode: true
 
 rag:
   chunk_size: 1000
   chunk_overlap: 200
+  vector_store:
+    persist_dir: "vector_store"
+    collection_name: "bacen_collection"
+    embed_model: "sentence-transformers/all-MiniLM-L6-v2"
   retriever:
     top_k: 5
   reranker:

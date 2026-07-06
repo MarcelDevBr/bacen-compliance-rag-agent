@@ -27,4 +27,5 @@ class RAGState(TypedDict):
     documents: List[str]
     citations: List[Citation]
     final_answer: str
+    provider: str
     messages: Annotated[list, operator.add]

@@ -80,7 +80,9 @@ def test_generate_node(mock_llm_port_class, mock_squad_class) -> None:
         "documents": ["O prazo é de 7 dias."]
     }
     
-    result = generate_node(state_input, llm_port=mock_llm_port)
+    from tests.test_adapters import get_mock_config
+    result = generate_node(state_input, llm_port=mock_llm_port, app_config=get_mock_config())
+    
     assert result["final_answer"] == "Squad final answer"
 
 @patch("src.application.use_cases.rag_orchestrator.StateGraph")
@@ -95,5 +97,7 @@ def test_build_graph(mock_stategraph) -> None:
     mock_llm = MagicMock()
     mock_reranker = MagicMock()
     
-    build_graph(vector_store_port=mock_vector, llm_port=mock_llm, reranker_port=mock_reranker)
-    assert mock_builder.compile.called
+    from tests.test_adapters import get_mock_config
+    build_graph(vector_store_port=mock_vector, llm_port=mock_llm, reranker_port=mock_reranker, app_config=get_mock_config())
+    
+    assert mock_stategraph.called

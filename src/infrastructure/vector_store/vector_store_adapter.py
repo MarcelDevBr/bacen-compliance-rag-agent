@@ -10,9 +10,12 @@ import os
 os.environ["ANONYMIZED_TELEMETRY"] = "False"
 import chromadb
 from llama_index.vector_stores.chroma import ChromaVectorStore
+from llama_index.core import VectorStoreIndex
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from typing import Any, List
 
 from src.domain.ports.vector_store_port import VectorStorePort
+from src.domain.entities import AppConfig, Citation
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,30 +28,23 @@ class VectorStoreAdapter(VectorStorePort):
         persist_dir (str): Diretório de persistência do índice no sistema de arquivos.
         collection_name (str): Nome da coleção no ChromaDB.
     """
-    def __init__(self, persist_dir: str = "vector_store", collection_name: str = "bacen_collection") -> None:
+    def __init__(self, config: AppConfig) -> None:
         """
         Inicializa o cliente local do ChromaDB configurando diretórios de persistência.
-
-        Args:
-            persist_dir (str, optional): Caminho do diretório de armazenamento. Padrão é "vector_store".
-            collection_name (str, optional): Nome da coleção. Padrão é "bacen_collection".
+        Os parâmetros (persist_dir, collection_name, embed_model) são injetados.
         """
-        from llama_index.core import VectorStoreIndex
-        from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-        from src.infrastructure.config.config_loader import load_config
-
-        self.config = load_config()
-        self.persist_dir = persist_dir
-        self.collection_name = collection_name
-        os.makedirs(persist_dir, exist_ok=True)
-        self.db = chromadb.PersistentClient(path=persist_dir)
+        self.config = config
+        self.persist_dir = self.config.rag.vector_store.persist_dir
+        self.collection_name = self.config.rag.vector_store.collection_name
+        os.makedirs(self.persist_dir, exist_ok=True)
+        self.db = chromadb.PersistentClient(path=self.persist_dir)
         
         logger.info(f"Conectando ao ChromaDB local: {self.persist_dir}")
         chroma_collection = self.db.get_or_create_collection(self.collection_name)
         self.vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
         
         logger.info("Carregando modelo de embeddings...")
-        self.embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        self.embed_model = HuggingFaceEmbedding(model_name=self.config.rag.vector_store.embed_model)
         self.index = VectorStoreIndex.from_vector_store(vector_store=self.vector_store, embed_model=self.embed_model)
         self.retriever = self.index.as_retriever(similarity_top_k=self.config.rag.retriever.top_k)
         
@@ -61,8 +57,7 @@ class VectorStoreAdapter(VectorStorePort):
         """
         return self.vector_store
 
-    def search(self, query: str, top_k: int = None) -> tuple[List[str], List[Any]]:
-        from src.domain.entities import Citation
+    def search(self, query: str, top_k: int | None = None) -> tuple[List[str], List[Any]]:
         # Usa top_k passado via argumento, ou recorre ao top_k do config
         k_val = top_k if top_k is not None else self.config.rag.retriever.top_k
         retriever = self.index.as_retriever(similarity_top_k=k_val)
@@ -71,7 +66,8 @@ class VectorStoreAdapter(VectorStorePort):
         citations = []
         texts = []
         for n in nodes:
-            texts.append(n.node.text)
+            content = n.node.get_content()
+            texts.append(content)
             metadata = n.node.metadata or {}
             
             # Extract LlamaIndex PDF metadata
@@ -88,8 +84,8 @@ class VectorStoreAdapter(VectorStorePort):
             citations.append(Citation(
                 source_file=file_name,
                 page_number=page_num,
-                text_snippet=n.node.text[:200] + "...",
-                relevance_score=round(float(score), 4)
+                text_snippet=content[:200] + "...",
+                relevance_score=round(score, 4)
             ))
             
         return texts, citations

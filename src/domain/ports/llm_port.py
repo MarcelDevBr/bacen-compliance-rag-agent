@@ -8,10 +8,13 @@ class LLMPort(ABC):
     """
 
     @abstractmethod
-    def get_client(self) -> Any:
+    def get_client(self, provider_override: str = None) -> Any:
         """
         Retorna a instância do cliente configurado pronto para ser injetado.
         
+        Args:
+            provider_override (str, optional): Se fornecido, sobrepõe o provedor padrão (ex: 'groq', 'google').
+            
         Returns:
             Any: Instância do LLM subjacente compatível com CrewAI/Langchain.
         """

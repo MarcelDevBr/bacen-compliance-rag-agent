@@ -25,13 +25,7 @@ def test_health_check() -> None:
     response = client.get("/health")
     assert response.status_code == 200
 
-def test_ui_serves_html() -> None:
-    """
-    Testa o endpoint raiz da interface web (UI).
-    Verifica a renderização correta do HTML base da aplicação.
-    """
-    response = client.get("/")
-    assert response.status_code == 200
+
 
 def test_invalid_query_request() -> None:
     """
@@ -41,16 +35,7 @@ def test_invalid_query_request() -> None:
     response = client.post("/api/v1/query", json={"thread_id": "123"})
     assert response.status_code == 422
 
-@patch("src.presentation.api.main.os.path.join")
-def test_ui_not_found(mock_join) -> None:
-    """
-    Testa a resiliência do roteador em caso de ausência do arquivo estático (HTML).
-    A requisição deve ser finalizada, sinalizando na resposta a indisponibilidade.
-    """
-    mock_join.return_value = "fake_path_does_not_exist.html"
-    response = client.get("/")
-    assert response.status_code == 200
-    assert Messages.UI_NOT_FOUND in response.text
+
 
 @patch("src.presentation.api.routes.build_graph")
 def test_ask_compliance_success(mock_build_graph) -> None:

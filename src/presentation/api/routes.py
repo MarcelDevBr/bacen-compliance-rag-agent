@@ -14,9 +14,10 @@ from src.domain.messages import Messages
 from src.domain.ports.vector_store_port import VectorStorePort
 from src.domain.ports.llm_port import LLMPort
 from src.domain.ports.reranker_port import RerankerPort
-from src.presentation.api.dependencies import get_vector_store, get_llm, get_reranker
+from src.presentation.api.dependencies import get_vector_store, get_llm, get_reranker, get_config
 from src.application.use_cases.rag_orchestrator import build_graph
 from src.domain.security import mask_pii
+from src.domain.entities import AppConfig
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,8 @@ async def ask_compliance_question(
     request: QueryRequest,
     vector_port: VectorStorePort = Depends(get_vector_store),
     llm_port: LLMPort = Depends(get_llm),
-    reranker_port: RerankerPort = Depends(get_reranker)
+    reranker_port: RerankerPort = Depends(get_reranker),
+    config: AppConfig = Depends(get_config)
 ) -> APIResponse[ComplianceResponse]:
     """
     Endpoint principal para processamento de inferências em linguagem natural.
@@ -40,10 +42,11 @@ async def ask_compliance_question(
     start_time = time.time()
     
     # Prepara o estado inicial para o LangGraph
-    rag_graph = build_graph(vector_store_port=vector_port, llm_port=llm_port, reranker_port=reranker_port)
+    rag_graph = build_graph(vector_store_port=vector_port, llm_port=llm_port, reranker_port=reranker_port, app_config=config)
     initial_state = {
         "question": sanitized_query,
         "thread_id": request.thread_id or "default",
+        "provider": request.provider,
         "documents": [],
         "citations": [],
         "final_answer": "",

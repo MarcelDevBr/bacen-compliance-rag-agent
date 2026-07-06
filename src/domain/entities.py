@@ -39,10 +39,17 @@ class RerankerConfig(BaseModel):
     model_name: str = Field(default="cross-encoder/ms-marco-MiniLM-L-6-v2", description="Modelo para Cross-Encoding.")
     top_n: int = Field(default=2, description="Número de documentos finais retidos após re-ranking.")
 
+class VectorStoreConfig(BaseModel):
+    """Esquema de configuração para o banco de dados vetorial."""
+    persist_dir: str = Field(default="vector_store", description="Diretório de armazenamento local do ChromaDB.")
+    collection_name: str = Field(default="bacen_collection", description="Nome da coleção no banco vetorial.")
+    embed_model: str = Field(default="sentence-transformers/all-MiniLM-L6-v2", description="Modelo utilizado para converter texto em embeddings.")
+
 class RAGConfig(BaseModel):
     """Esquema de configuração agrupador do pipeline RAG."""
     chunk_size: int = Field(default=1000, description="Tamanho de cada bloco particionado durante a ingestão.")
     chunk_overlap: int = Field(default=200, description="Tamanho da sobreposição entre blocos particionados.")
+    vector_store: VectorStoreConfig = Field(default_factory=VectorStoreConfig)
     retriever: RetrieverConfig
     reranker: RerankerConfig
 
@@ -68,6 +75,9 @@ class AppMetadata(BaseModel):
     """Esquema de metadados operacionais da aplicação."""
     name: str = Field(..., description="Nome de registro do aplicativo/serviço.")
     environment: Environment = Field(..., description="Ambiente de implantação (ex: production, staging, development).")
+    host: str = Field(default="0.0.0.0", description="IP de bind do servidor web.")
+    port_api: int = Field(default=8080, description="Porta para o backend FastAPI.")
+    port_ui: int = Field(default=8000, description="Porta para o frontend Streamlit.")
 
 class AppConfig(BaseModel):
     """Raiz do esquema de configurações carregado a partir do YAML."""
@@ -82,6 +92,7 @@ class QueryRequest(BaseModel):
     """Esquema do payload de entrada da requisição de inferência (Endpoint POST)."""
     query: str = Field(..., description="A pergunta do usuário final ou operador do CRM a ser respondida.", examples=["Qual o SLA de devolução do MED do Pix?"])
     thread_id: Optional[str] = Field(None, description="Identificador da sessão para preservação de memória contextual (ex: ID de Ticket).", examples=["ticket-99882"])
+    provider: Optional[str] = Field(None, description="Override dinâmico do LLM provider (ex: groq, google).", examples=["groq"])
 
 class Citation(BaseModel):
     """Esquema representativo de uma fonte documental utilizada como evidência pela IA."""

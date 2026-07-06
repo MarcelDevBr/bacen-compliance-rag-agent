@@ -13,18 +13,22 @@ if [ -n "$PID_API" ] || [ -n "$PID_UI" ]; then
     exit 0
 fi
 
-echo "[*] Iniciando o servidor FastAPI (Porta 8080)..."
+API_PORT=${API_PORT:-8080}
+UI_PORT=${UI_PORT:-8000}
+API_HOST=${API_HOST:-0.0.0.0}
+
+echo "[*] Iniciando o servidor FastAPI (Porta $API_PORT)..."
 mkdir -p logs
 export PYTHONPATH=.
-nohup uv run uvicorn src.presentation.api.main:app --host 0.0.0.0 --port 8080 --reload > logs/server.log 2>&1 &
+nohup uv run uvicorn src.presentation.api.main:app --host $API_HOST --port $API_PORT --reload > logs/server.log 2>&1 &
 API_PID=$!
 
-echo "[*] Iniciando a interface Streamlit (Porta 8000)..."
-nohup uv run streamlit run frontend/app_streamlit.py --server.port 8000 --server.address 0.0.0.0 > logs/ui.log 2>&1 &
+echo "[*] Iniciando a interface Streamlit (Porta $UI_PORT)..."
+nohup uv run streamlit run frontend/app_streamlit.py --server.port $UI_PORT --server.address $API_HOST > logs/ui.log 2>&1 &
 UI_PID=$!
 
 echo "[+] Servidores iniciados em background."
 echo "    - FastAPI: PID $API_PID"
 echo "    - Streamlit: PID $UI_PID"
 echo "[+] Os logs estão sendo gravados em logs/server.log e logs/ui.log"
-echo "[+] Acesse http://localhost:8000 para usar a interface."
+echo "[+] Acesse http://localhost:$UI_PORT para usar a interface."

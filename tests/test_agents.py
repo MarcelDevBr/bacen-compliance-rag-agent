@@ -30,8 +30,9 @@ def test_compliance_agents_run_squad(mock_crew_class, mock_agent, mock_task) -> 
     mock_crew_class.return_value = mock_crew_instance
     
     mock_llm_port = MagicMock()
-    squad = ComplianceSquad(llm_port=mock_llm_port)
-    final_ans = squad.run_squad("Minha pergunta", "Contexto falso")
+    from tests.test_adapters import get_mock_config
+    squad = ComplianceSquad(llm_port=mock_llm_port, config=get_mock_config())
+    final_ans = squad.run_squad(question="Qual o SLA?", retrieved_context="O SLA é 30 minutos.")
     
     assert final_ans == "Final audited review by CrewAI"
     mock_crew_instance.kickoff.assert_called_once()

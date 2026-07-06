@@ -8,8 +8,8 @@ e outro como validador de compliance regulatório.
 
 import logging
 from crewai import Agent, Task, Crew, Process
-from src.infrastructure.config.config_loader import load_config
 from src.domain.ports.llm_port import LLMPort
+from src.domain.entities import AppConfig
 from src.domain.messages import Messages
 
 logger = logging.getLogger(__name__)
@@ -22,12 +22,12 @@ class ComplianceSquad:
         llm_port (LLMPort): Adaptador LLM injetado que respeita a interface (Port) do domínio.
     """
     
-    def __init__(self, llm_port: LLMPort) -> None:
+    def __init__(self, llm_port: LLMPort, config: AppConfig, provider_override: str | None = None) -> None:
         """
         Inicializa o squad carregando as parametrizações e instanciando a conexão com a API do LLM.
         """
-        self.config = load_config()
-        self.llm = llm_port.get_client()
+        self.config = config
+        self.llm = llm_port.get_client(provider_override=provider_override)
 
     def run_squad(self, question: str, retrieved_context: str) -> str:
         """
@@ -40,7 +40,7 @@ class ComplianceSquad:
         Returns:
             str: O artefato final validado.
         """
-        logger.info("Iniciando Squad CrewAI (Analista -> Auditor)...")
+        logger.info(f"Iniciando Squad CrewAI (Analista -> Auditor) usando {self.llm.model}...")
 
         analyst_agent = Agent(
             role=Messages.ANALYST_ROLE,

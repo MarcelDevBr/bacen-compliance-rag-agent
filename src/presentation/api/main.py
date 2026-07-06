@@ -11,6 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from langserve import add_routes
 from src.infrastructure.config.config_loader import load_config
 from src.presentation.api.routes import router
 from src.domain.exceptions import BaseDomainException
@@ -46,7 +47,6 @@ app.add_middleware(
 app.include_router(router)
 
 # Integração com LangServe
-from langserve import add_routes
 from src.presentation.api.dependencies import get_vector_store, get_llm, get_reranker
 from src.application.use_cases.rag_orchestrator import build_graph
 
@@ -54,7 +54,7 @@ try:
     vector_port = get_vector_store()
     llm_port = get_llm()
     reranker_port = get_reranker()
-    rag_graph = build_graph(vector_store_port=vector_port, llm_port=llm_port, reranker_port=reranker_port)
+    rag_graph = build_graph(vector_store_port=vector_port, llm_port=llm_port, reranker_port=reranker_port, app_config=app_config)
     add_routes(
         app,
         rag_graph,

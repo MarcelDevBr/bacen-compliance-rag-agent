@@ -8,9 +8,9 @@ da camada de orquestração do LangChain/CrewAI.
 
 import os
 from crewai import LLM
-from src.infrastructure.config.config_loader import load_config
+from typing import Optional
 from src.domain.ports.llm_port import LLMPort
-from src.domain.entities import LLMProvider
+from src.domain.entities import LLMProvider, AppConfig
 
 class LLMAdapter(LLMPort):
     """
@@ -20,33 +20,43 @@ class LLMAdapter(LLMPort):
         config (AppConfig): Modelos validados Pydantic contendo metadados do LLM.
         api_key (str): Chave de autorização criptografada injetada via ambiente.
     """
-    def __init__(self) -> None:
+    def __init__(self, config: AppConfig) -> None:
         """
-        Inicializa o adaptador processando as credenciais de segurança e parametrizações de modelo.
+        Inicializa o adaptador carregando chaves do ambiente.
         """
-        self.config = load_config()
+        self.config = config
         
-        if self.config.llm.provider == LLMProvider.GOOGLE:
-            self.api_key = os.getenv("GEMINI_API_KEY")
-            if not self.api_key:
-                raise ValueError("GEMINI_API_KEY não configurada no ambiente!")
-        else:
-            self.api_key = os.getenv("GROQ_API_KEY")
-            if not self.api_key or self.api_key == "gsk_suachaveaqui":
-                raise ValueError("GROQ_API_KEY não configurada corretamente no sistema operacional ou .env!")
+        self.gemini_key = os.getenv("GEMINI_API_KEY")
+        self.groq_key = os.getenv("GROQ_API_KEY")
 
-    def get_client(self) -> LLM:
+    def get_client(self, provider_override: str | None = None) -> LLM:
         """
         Provisiona e expõe o cliente LLM preparado para inferência pela CrewAI.
+        
+        Args:
+            provider_override (str, optional): Substitui o LLM padrão definido no config.yml.
 
         Returns:
-            LLM: Objeto cliente conectado à API externa com temperatura e modelo definidos via configuração.
+            LLM: Objeto cliente conectado à API externa.
         """
-        # LiteLLM prefix for Google Gemini is 'gemini/'
-        provider_prefix = "gemini" if self.config.llm.provider == LLMProvider.GOOGLE else self.config.llm.provider
+        # Resolve o provedor: override tem preferência, depois config.yml
+        provider = provider_override if provider_override else self.config.llm.provider
         
+        if provider == LLMProvider.GOOGLE or provider == "google":
+            if not self.gemini_key or self.gemini_key == "sua_chave":
+                raise ValueError("GEMINI_API_KEY inválida ou não configurada.")
+            provider_prefix = "gemini"
+            model_name = "gemini-2.5-flash" if self.config.llm.provider != provider else self.config.llm.model_name
+            api_key = self.gemini_key
+        else:
+            if not self.groq_key or self.groq_key == "gsk_suachaveaqui":
+                raise ValueError("GROQ_API_KEY inválida ou não configurada.")
+            provider_prefix = "groq"
+            model_name = "llama3-70b-8192" if self.config.llm.provider != provider else self.config.llm.model_name
+            api_key = self.groq_key
+            
         return LLM(
-            model=f"{provider_prefix}/{self.config.llm.model_name}",
+            model=f"{provider_prefix}/{model_name}",
             temperature=self.config.llm.temperature,
-            api_key=self.api_key
+            api_key=api_key
         )

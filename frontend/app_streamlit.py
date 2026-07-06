@@ -2,6 +2,13 @@ import streamlit as st
 import requests
 import json
 import os
+from src.infrastructure.config.config_loader import load_config
+
+# Carrega configurações base (YAML + Env)
+app_config = load_config()
+API_HOST = os.getenv("API_HOST", app_config.app.host)
+API_PORT = app_config.app.port_api
+API_BASE_URL = f"http://{API_HOST}:{API_PORT}"
 
 # Configuração da página
 st.set_page_config(
@@ -28,7 +35,7 @@ st.markdown("""
 
 # ---- BARRA LATERAL ----
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Banco_Central_do_Brasil_logo.svg/2560px-Banco_Central_do_Brasil_logo.svg.png", width=150)
+    st.image("https://avatars.githubusercontent.com/u/1089914?s=200&v=4", width=150)
     st.title("Sistema de Compliance")
     st.markdown("Agente de Inteligência Artificial especializado na análise e auditoria de normativos oficiais do **Banco Central do Brasil**.")
     
@@ -37,10 +44,10 @@ with st.sidebar:
     st.subheader("🔗 Links para Desenvolvedores")
     st.markdown("""
     Acesse a documentação técnica da API (FastAPI) e o playground interativo:
-    - 📚 [Swagger UI (Docs)](http://localhost:8080/docs)
-    - 📖 [ReDoc (Especificação)](http://localhost:8080/redoc)
-    - 🎮 [LangServe Playground](http://localhost:8080/rag/playground)
-    """)
+    - 📚 [Swagger UI (Docs)]({base_url}/docs)
+    - 📖 [ReDoc (Especificação)]({base_url}/redoc)
+    - 🎮 [LangServe Playground]({base_url}/rag/playground)
+    """.format(base_url=API_BASE_URL))
     
     st.divider()
     
@@ -48,14 +55,44 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
         
-    st.markdown("<br><br><small>Versão 1.1.0 | Engine: Google Gemini (Cross-Encoder Re-Ranked)</small>", unsafe_allow_html=True)
+    st.divider()
+    st.subheader("⚙️ Motor LLM")
+    # Lógica de detecção de chaves válidas
+    valid_providers = []
+    
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key and groq_key != "gsk_suachaveaqui":
+        valid_providers.append("Groq (Llama-3)")
+        
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if gemini_key and gemini_key != "sua_chave":
+        valid_providers.append("Google Gemini")
+        
+    if not valid_providers:
+        st.error("Nenhuma chave válida configurada no .env!")
+        selected_provider_display = None
+    elif len(valid_providers) == 1:
+        st.info(f"Motor Ativo: **{valid_providers[0]}**")
+        selected_provider_display = valid_providers[0]
+    else:
+        selected_provider_display = st.selectbox("Selecione a Inteligência Artificial:", valid_providers)
+        
+    # Mapeamento do nome de exibição para o payload da API
+    if selected_provider_display == "Groq (Llama-3)":
+        st.session_state.selected_provider = "groq"
+    elif selected_provider_display == "Google Gemini":
+        st.session_state.selected_provider = "google"
+    else:
+        st.session_state.selected_provider = None
+
+    st.markdown("<br><small>Versão 1.2.0 | Engine Dinâmica</small>", unsafe_allow_html=True)
 
 
 # ---- ÁREA PRINCIPAL ----
 st.title("🏦 Bacen Compliance RAG")
 st.markdown("Faça perguntas sobre regulamentos, circulares e manuais do BACEN. A IA retornará a resposta devidamente ancorada na legislação em vigor.")
 
-API_URL = os.getenv("API_URL", "http://localhost:8080/api/v1/query")
+API_URL = os.getenv("API_URL", f"{API_BASE_URL}/api/v1/query")
 
 # Inicializa o histórico do chat
 if "messages" not in st.session_state:
@@ -98,7 +135,11 @@ if prompt := st.chat_input("Ex: Qual o prazo máximo para a devolução do Pix v
         
         try:
             with st.spinner("Analisando o repositório de normativos do BACEN..."):
-                payload = {"query": prompt, "thread_id": "streamlit-session"}
+                payload = {
+                    "query": prompt, 
+                    "thread_id": "streamlit-session",
+                    "provider": st.session_state.get("selected_provider")
+                }
                 response = requests.post(API_URL, json=payload)
                 
                 if response.status_code == 200:
@@ -132,4 +173,4 @@ if prompt := st.chat_input("Ex: Qual o prazo máximo para a devolução do Pix v
                 else:
                     message_placeholder.error(f"Erro de Conexão: HTTP {response.status_code}")
         except Exception as e:
-            message_placeholder.error(f"O backend da API (porta 8080) parece estar offline. Detalhe: {e}")
+            message_placeholder.error(f"O backend da API (porta {API_PORT}) parece estar offline. Detalhe: {e}")

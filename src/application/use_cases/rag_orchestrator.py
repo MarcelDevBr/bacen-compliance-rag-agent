@@ -11,15 +11,14 @@ from functools import partial
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
 
-from src.domain.entities import ComplianceResponse
+from src.domain.entities import AppConfig
 from src.domain.state import RAGState
 from src.domain.ports.vector_store_port import VectorStorePort
 from src.domain.ports.llm_port import LLMPort
+from src.domain.ports.reranker_port import RerankerPort
 from src.application.agents.compliance_agents import ComplianceSquad
 
 logger = logging.getLogger(__name__)
-
-from src.domain.ports.reranker_port import RerankerPort
 
 def retrieve_node(state: RAGState, vector_store_port: VectorStorePort) -> dict:
     """
@@ -46,19 +45,20 @@ def rerank_node(state: RAGState, reranker_port: RerankerPort) -> dict:
         
     return {"documents": top_docs, "citations": top_citations}
 
-def generate_node(state: RAGState, llm_port: LLMPort) -> dict:
+def generate_node(state: RAGState, llm_port: LLMPort, app_config: AppConfig) -> dict:
     """
     Nó de processamento: Gera e revisa a resposta usando o squad multi-agente.
     """
     logger.info("LangGraph: Iniciando geração de resposta com o Squad Multi-Agente...")
     context_str = "\n\n".join(state["documents"])
+    provider = state.get("provider")
     
-    squad = ComplianceSquad(llm_port=llm_port)
-    final_answer: ComplianceResponse = squad.run_squad(question=state["question"], retrieved_context=context_str)
+    squad = ComplianceSquad(llm_port=llm_port, config=app_config, provider_override=provider)
+    final_answer: str = squad.run_squad(question=state["question"], retrieved_context=context_str)
     
     return {"final_answer": final_answer}
 
-def build_graph(vector_store_port: VectorStorePort, llm_port: LLMPort, reranker_port: RerankerPort) -> CompiledStateGraph:
+def build_graph(vector_store_port: VectorStorePort, llm_port: LLMPort, reranker_port: RerankerPort, app_config: AppConfig) -> CompiledStateGraph:
     """
     Constrói e compila a máquina de estado (StateGraph) do pipeline RAG utilizando Injeção de Dependência.
     """
@@ -66,7 +66,7 @@ def build_graph(vector_store_port: VectorStorePort, llm_port: LLMPort, reranker_
     
     bound_retrieve = partial(retrieve_node, vector_store_port=vector_store_port)
     bound_rerank = partial(rerank_node, reranker_port=reranker_port)
-    bound_generate = partial(generate_node, llm_port=llm_port)
+    bound_generate = partial(generate_node, llm_port=llm_port, app_config=app_config)
     
     builder.add_node("retriever", bound_retrieve)
     builder.add_node("reranker", bound_rerank)
